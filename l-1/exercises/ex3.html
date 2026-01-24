@@ -25,6 +25,7 @@
             width: 100%;
             margin: 0;
             font-family: 'Livvic';
+            background: "../../uploads/bg.png";
             background-size: cover;
             display: flex;
             align-items: center;
@@ -384,7 +385,7 @@
     </div>
 
     <div id="teacherPopup" class="teacher-popup">
-        <img id="teacherImg" class="teacher-img" src="uploads/yes.png" alt="Teacher reaction">
+        <img id="teacherImg" class="teacher-img" src="../uploads/yes.png" alt="Teacher reaction">
         <div id="teacherMsg" class="teacher-msg">Great job! That's correct 🎉</div>
     </div>
 
@@ -599,10 +600,10 @@
 
         function showTeacher(isCorrect) {
             if (isCorrect) {
-                teacherImg.src = 'uploads/yes.png';
+                teacherImg.src = '../uploads/yes.png';
                 teacherMsg.textContent = "Great job! That's right 🎉";
             } else {
-                teacherImg.src = 'uploads/no.png';
+                teacherImg.src = '../uploads/no.png';
                 teacherMsg.textContent = "Oops! Not quite — try again.";
             }
             teacherPopup.classList.add('show');
