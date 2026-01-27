@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fill in the Blanks — Type Letters</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg1:#fde2e4;
+      --bg2:#e2f0fb;
+      --bg3:#e8f8e8;
+      --correct: #28a745;
+      --wrong: #dc3545;
+      --card-radius: 24px;
+      --q-text-color: #2F4F4F;
+      --blue: #4cc9f0;
+      --pink: #f778a1;
+      --magic2: #00c2ff;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100%;
+      margin: 0;
+      font-family: 'Livvic';
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      overflow: hidden;
+      font-size: 13pt;
+      background:
+        radial-gradient(circle at top left, var(--bg1), transparent 55%),
+        radial-gradient(circle at bottom right, var(--bg2), transparent 55%),
+        radial-gradient(circle at center, var(--bg3), #ffffff 60%);
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 980px;
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      padding: 28px;
+      box-sizing: border-box;
+      position: relative;
+      z-index: 10;
+    }
+
+    .question-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      min-height: 460px;
+      justify-content: center;
+    }
+
+    .q-number {
+      font-weight: 400;
+      color: var(--q-text-color);
+      opacity: .9;
+    }
+
+    .bird-btn {
+      background: #FFC312;
+      border: 4px solid #F79F1F;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 0 #e58e26;
+      transition: transform 0.1s;
+    }
+    .bird-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #e58e26; }
+    .bird-btn svg { width: 40px; height: 40px; fill: #333; }
+
+    .hint-text {
+      font-size: clamp(16pt, 3vw, 28pt);
+      color: var(--q-text-color);
+      text-align: center;
+      line-height: 1.2;
+      max-width: 900px;
+    }
+
+    .sentence {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(18pt, 3.2vw, 32pt);
+      color: var(--q-text-color);
+      text-align: center;
+      padding: 10px 6px;
+    }
+
+    .blank-group {
+      display: inline-flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 6px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .blank-input {
+      width: 62px;
+      height: 66px;
+      border-radius: 16px;
+      border: 4px dashed #2F4F4F;
+      background: rgba(255, 255, 255, 0.85);
+      font-weight: 900;
+      font-size: 30px;
+      color: #2F4F4F;
+      text-align: center;
+      outline: none;
+      caret-color: transparent;
+      cursor: pointer;
+      transition: transform .12s, box-shadow .2s, border-color .2s;
+    }
+
+    .blank-input:focus {
+      border-color: var(--magic2);
+      box-shadow: 0 0 18px rgba(0, 194, 255, 0.25);
+      transform: translateY(-2px);
+      cursor: pointer;
+      }
+
+    .blank-input.correct {
+      border-style: solid;
+      cursor: pointer;
+      border-color: var(--correct);
+      box-shadow: 0 0 20px rgba(40, 167, 69, 0.22);
+      background: #fff;
+    }
+
+    .blank-input.wrong {
+      border-style: solid;
+      border-color: var(--wrong);
+      box-shadow: 0 0 20px rgba(220, 53, 69, 0.20);
+      background: #fff;
+    }
+
+    .blank-group.shake { animation: shake .35s ease-in-out; }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .controls {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .nav-btn {
+      padding: 20px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 22px;
+      color: #2F4F4F;
+      border: 4px solid white;
+      cursor: pointer;
+      font-family: "Livvic";
+      transition: transform .12s;
+      user-select: none;
+    }
+
+    .nav-btn:hover { transform: scale(1.08); }
+    .nav-btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; }
+
+    #prevBtn { background: var(--pink); }
+    #nextBtn { background: var(--blue); }
+
+    .mini-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .small-btn {
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 4px solid #fff;
+      font-family: "Livvic";
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 18px;
+      color: #2F4F4F;
+      background: rgba(255,255,255,0.7);
+      transition: transform .12s;
+    }
+    .small-btn:hover { transform: scale(1.06); }
+    .small-btn:active { transform: translateY(2px); }
+
+    #feedbackSmiley {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      font-size: 200px;
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s;
+      z-index: 2600;
+      pointer-events: none;
+    }
+
+    #feedbackSmiley.show { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    #feedbackSmiley.fade { opacity: 0; transition: all 0.8s ease-out; }
+
+    canvas.confetti {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1600;
+    }
+
+    .final-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2700;
+      backdrop-filter: blur(5px);
+    }
+
+    .final-modal {
+      width: min(650px, 90%);
+      background: white;
+      border-radius: 30px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .final-modal h2 {
+      font-size: 48px;
+      color: #2c7a4b;
+      margin: 0 0 14px 0;
+      font-weight: 400;
+    }
+
+    .btn {
+      padding: 15px 25px;
+      border-radius: 50px;
+      cursor: pointer;
+      border: none;
+      font-size: 20px;
+      background: #4cc9f0;
+      color: white;
+      font-family: "Livvic";
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="question-area">
+
+      <div style="display:flex;gap:12px;align-items:center;">
+        <div class="q-number" id="qNumber">Question 1 of 5</div>
+        <button id="readBtn" class="bird-btn" title="Read sentence">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="hint-text">Type the missing word ✨</div>
+
+      <div class="sentence" id="sentenceLine">Loading...</div>
+
+      <div class="mini-controls">
+        <button id="clearBtn" class="small-btn">🧽 CLEAR</button>
+      </div>
+
+      <div class="controls">
+        <button id="prevBtn" class="nav-btn" disabled>PREV ◀</button>
+        <button id="nextBtn" class="nav-btn" disabled>NEXT ▶</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="feedbackSmiley"></div>
+  <canvas id="confettiCanvas" class="confetti"></canvas>
+
+  <script>
+    /* ✅ Questions + answers */
+    const questions = [
+      { prefix: "Each part of our body has different", blank: "WORK", suffix: "to perform." },
+      { prefix: "We must wipe our body with a clean", blank: "TOWEL", suffix: "." },
+      { prefix: "Eyes, ears, nose, tongue and skin are called the", blank: "SENSEORGANS", suffix: "." },
+      { prefix: "The", blank: "TONGUE", suffix: "is the sense organ that helps us to taste." },
+      { prefix: "We hold things with our", blank: "HANDS", suffix: "." }
+    ];
+
+    const qNumber = document.getElementById("qNumber");
+    const sentenceLine = document.getElementById("sentenceLine");
+    const readBtn = document.getElementById("readBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const feedbackSmiley = document.getElementById("feedbackSmiley");
+    const clearBtn = document.getElementById("clearBtn");
+
+    const confettiCanvas = document.getElementById("confettiCanvas");
+    const ctx = confettiCanvas.getContext("2d");
+
+    let idx = 0;
+    let solved = false;
+    let inputs = [];
+
+    /* -------------- Audio -------------- */
+    let audioCtx = null;
+    function ensureAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function playCorrectTone() {
+      const ctx = ensureAudio();
+      const now = ctx.currentTime;
+      const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+      o1.type = 'sine'; o1.frequency.value = 880;
+      o2.type = 'sine'; o2.frequency.value = 1100;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.18, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+      o1.start(now); o2.start(now);
+      o1.stop(now + 0.6); o2.stop(now + 0.6);
+    }
+
+    function playWrongBuzz() {
+      const ctx = ensureAudio();
+      const now = ctx.currentTime;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'square'; o.frequency.value = 180;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.12, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now); o.stop(now + 0.35);
+    }
+
+    function playCompletionTone() {
+      const ctx = ensureAudio();
+      const now = ctx.currentTime;
+      const freqs = [660, 880, 1320];
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.01);
+      freqs.forEach(f => {
+        const o = ctx.createOscillator();
+        o.type = 'sine'; o.frequency.value = f;
+        o.connect(gain);
+        o.start(now);
+        o.stop(now + 1.2);
+      });
+      gain.connect(ctx.destination);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+    }
+
+    /* -------------- Confetti -------------- */
+    let confettiParticles = [];
+    function resizeCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function launchConfetti(duration = 1400, count = 120) {
+      confettiParticles = [];
+      const W = confettiCanvas.width, H = confettiCanvas.height;
+      for (let i = 0; i < count; i++) {
+        confettiParticles.push({
+          x: Math.random() * W,
+          y: -10 - Math.random() * 200,
+          vx: (Math.random() - 0.5) * 6,
+          vy: 2 + Math.random() * 6,
+          size: 5 + Math.random() * 10,
+          color: `hsl(${Math.floor(Math.random() * 360)},90%,60%)`,
+          rot: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 12
+        });
+      }
+      requestAnimationFrame(drawConfetti);
+      setTimeout(() => {
+        confettiParticles = [];
+        ctx.clearRect(0, 0, W, H);
+      }, duration);
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiParticles.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot * Math.PI / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.restore();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.06;
+        p.rot += p.rotSpeed;
+      });
+      if (confettiParticles.length) requestAnimationFrame(drawConfetti);
+    }
+
+    /* -------------- Smiley -------------- */
+    function showSmiley(emoji) {
+      feedbackSmiley.classList.remove("show", "fade");
+      feedbackSmiley.textContent = emoji;
+      requestAnimationFrame(() => {
+        feedbackSmiley.classList.add("show");
+        setTimeout(() => feedbackSmiley.classList.add("fade"), 500);
+        setTimeout(() => feedbackSmiley.classList.remove("show", "fade"), 1300);
+      });
+    }
+
+    /* -------------- Nav -------------- */
+    function updateNav() {
+      prevBtn.disabled = idx === 0;
+      nextBtn.disabled = !solved;
+      nextBtn.textContent = (idx === questions.length - 1) ? "FINISH" : "NEXT ▶";
+    }
+
+    function speakText(txt) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(txt.replace(/_+/g, " blank "));
+        u.lang = "en-IN";
+        u.rate = 0.95;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    /* -------------- Blank Boxes (Typing) -------------- */
+    function buildTypingBoxes(word) {
+      const blankGroup = document.createElement("span");
+      blankGroup.className = "blank-group";
+      blankGroup.id = "blankGroup";
+
+      inputs = [];
+
+for (let i = 0; i < word.length; i++) {
+  const inp = document.createElement("input");
+  inp.className = "blank-input";
+  inp.maxLength = 1;
+  inp.autocomplete = "off";
+  inp.inputMode = "text";
+
+  inp.addEventListener("input", () => {
+    if (solved) return;
+
+    inp.value = inp.value.toUpperCase().replace(/[^A-Z]/g, "");
+    if (inp.value && inputs[i + 1]) inputs[i + 1].focus();
+
+    tryAutoCheck();
+  });
+
+  // ✅ UNDO by clicking input (no backspace required)
+  inp.addEventListener("click", () => {
+    if (solved) return;
+    if (inp.value !== "") {
+      inp.value = "";
+      inp.classList.remove("wrong", "correct");
+      inp.focus();
+    }
+  });
+
+  inp.addEventListener("keydown", (e) => {
+    if (solved) return;
+
+    // prevent typing space
+    if (e.key === " ") e.preventDefault();
+  });
+
+  inputs.push(inp);
+  blankGroup.appendChild(inp);
+}
+
+
+      // focus first input
+      setTimeout(() => inputs[0]?.focus(), 80);
+
+      return blankGroup;
+    }
+
+    function getTypedWord() {
+      return inputs.map(i => i.value || "").join("");
+    }
+
+    function allFilled() {
+      return inputs.every(i => i.value && i.value.trim() !== "");
+    }
+
+    function markCorrect() {
+      inputs.forEach(i => {
+        i.classList.add("correct");
+        i.classList.remove("wrong");
+        i.disabled = true;
+      });
+    }
+
+    function markWrong() {
+      inputs.forEach(i => {
+        i.classList.add("wrong");
+        i.classList.remove("correct");
+      });
+    }
+
+    function resetBoxes() {
+      const blankGroup = document.getElementById("blankGroup");
+      if (!blankGroup) return;
+
+      solved = false;
+
+      blankGroup.classList.add("shake");
+      setTimeout(() => blankGroup.classList.remove("shake"), 360);
+
+      inputs.forEach(i => {
+        i.value = "";
+        i.disabled = false;
+        i.classList.remove("wrong", "correct");
+      });
+
+      updateNav();
+      setTimeout(() => inputs[0]?.focus(), 80);
+    }
+
+    function tryAutoCheck() {
+      if (!allFilled()) return;
+
+      ensureAudio();
+
+      const correctWord = questions[idx].blank.toUpperCase();
+      const typed = getTypedWord().toUpperCase();
+
+      if (typed === correctWord) {
+        solved = true;
+        markCorrect();
+        playCorrectTone();
+        launchConfetti(1400, 140);
+        showSmiley("😃");
+        updateNav();
+      } else {
+        solved = false;
+        markWrong();
+        playWrongBuzz();
+        showSmiley("😭");
+        setTimeout(resetBoxes, 900);
+      }
+    }
+
+    function showQuestion(i) {
+      solved = false;
+      const q = questions[i];
+
+      qNumber.textContent = `Question ${i + 1} of ${questions.length}`;
+      sentenceLine.innerHTML = "";
+
+      const prefixSpan = document.createElement("span");
+      prefixSpan.textContent = q.prefix + " ";
+
+      const suffixSpan = document.createElement("span");
+      suffixSpan.textContent = " " + q.suffix;
+
+      const blankGroup = buildTypingBoxes(q.blank);
+
+      sentenceLine.appendChild(prefixSpan);
+      sentenceLine.appendChild(blankGroup);
+      sentenceLine.appendChild(suffixSpan);
+
+      updateNav();
+    }
+
+    function showCompletePopup() {
+      playCompletionTone();
+      launchConfetti(3000, 200);
+
+      const div = document.createElement("div");
+      div.className = "final-modal-overlay";
+      div.innerHTML = `
+        <div class="final-modal">
+          <h2>🎉🥳 YOU WON! 🥳🎉</h2>
+          <p style="font-size:24px; color:#555;">You completed the quiz. You are a superstar!</p>
+          <button class="btn" onclick="location.reload()">PLAY AGAIN ↺</button>
+        </div>
+      `;
+      document.body.appendChild(div);
+    }
+
+    /* -------------- Events -------------- */
+    readBtn.addEventListener("click", () => {
+      readBtn.style.transform = "scale(1.1)";
+      setTimeout(() => readBtn.style.transform = "scale(1)", 100);
+      const q = questions[idx];
+      speakText(`${q.prefix} blank ${q.suffix}`);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if (solved) return;
+      resetBoxes();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (idx > 0) {
+        idx--;
+        showQuestion(idx);
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (nextBtn.disabled) return;
+
+      if (idx < questions.length - 1) {
+        idx++;
+        showQuestion(idx);
+      } else {
+        showCompletePopup();
+      }
+    });
+
+    /* -------------- Init -------------- */
+    showQuestion(0);
+    updateNav();
+  </script>
+</body>
+</html>

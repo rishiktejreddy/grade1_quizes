@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>True or False Quiz ✨👼</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg1:#fde2e4;
+      --bg2:#e2f0fb;
+      --bg3:#e8f8e8;
+      --true: #2ecc71;
+      --false: #e74c3c;
+      --q-text-color: #2F4F4F;
+      --blue: #4cc9f0;
+      --pink: #f778a1;
+      --gold: #f1c40f;
+      --card-radius: 30px;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100%;
+      margin: 0;
+      font-family: 'Livvic', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at top left, var(--bg1), transparent 55%),
+        radial-gradient(circle at bottom right, var(--bg2), transparent 55%),
+        radial-gradient(circle at center, var(--bg3), #ffffff 60%);
+      overflow: hidden;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 900px;
+      padding: 20px;
+      box-sizing: border-box;
+      z-index: 2;
+    }
+
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      filter: blur(40px);
+      z-index: 1;
+    }
+
+    .question-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      position: relative;
+    }
+
+    /* ✅ EXACT SAME AS TICK QUIZ */
+    .q-number {
+      text-align: center;
+      font-size: 18px;
+      color: #2F4F4F;
+      margin-bottom: 10px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 8px 20px;
+      border-radius: 50px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .question-card {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 25px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: var(--card-radius);
+      padding: 25px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      border: 2px solid #fff;
+      position: relative;
+    }
+
+    .hint-img-box {
+      width: 140px;
+      height: 140px;
+      border-radius: 20px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #fff;
+      border: 5px solid #fff;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .hint-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* ✅ EXACT SAME AS TICK QUIZ */
+    .q-text {
+      font-size: clamp(20pt, 4vw, 34pt);
+      color: #2F4F4F;
+      margin-bottom: 18px;
+      display: inline-block;
+      line-height: 1.2;
+      font-weight: 400;
+      margin: 0;
+      flex: 1;
+    }
+
+    /* ✅ READ BUTTON (same style like tick quiz) */
+    .bird-btn {
+      background: #FFD54F;
+      border: none;
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #E0B93F;
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+    }
+    .bird-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #E0B93F;
+    }
+    .bird-btn svg {
+      width: 34px;
+      fill: #2C3E50;
+    }
+
+    .opts {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .choice-wrap {
+      position: relative;
+      width: 220px;
+    }
+
+    .big-btn {
+      width: 100%;
+      padding: 25px;
+      border-radius: 20px;
+      border: 4px solid #fff;
+      font-size: 40px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 5;
+      user-select: none;
+    }
+
+    #btnT { background: #d4edda; color: #155724; }
+    #btnF { background: #f8d7da; color: #721c24; }
+
+    .big-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    .big-btn.correct { background: var(--true) !important; color: white !important; }
+    .big-btn.wrong { background: var(--false) !important; color: white !important; animation: shake 0.4s; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    /* --- MAGIC ANGEL ORBIT --- */
+    .magic-orbit {
+      position: absolute;
+      inset: -30px;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+
+    .magic-orbit.show {
+      display: block;
+      animation: orbit 1.5s linear infinite;
+    }
+
+    .angel {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 50px;
+      filter: drop-shadow(0 0 12px rgba(241,196,15,0.9));
+    }
+
+    .magic-orbit.show .angel {
+      animation: keep-upright 1.5s linear infinite;
+    }
+
+    @keyframes orbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes keep-upright {
+      from { transform: translateX(-50%) rotate(0deg); }
+      to { transform: translateX(-50%) rotate(-360deg); }
+    }
+
+    .sparkle-trail {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px dotted var(--gold);
+      opacity: 0;
+    }
+
+    .magic-orbit.show .sparkle-trail {
+      opacity: 1;
+      animation: pulse-sparkle 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse-sparkle {
+      from { transform: scale(1); opacity: 0.55; }
+      to { transform: scale(1.12); opacity: 1; box-shadow: 0 0 22px var(--gold); }
+    }
+
+    .controls {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+
+    .nav-btn {
+      padding: 15px 35px;
+      border-radius: 50px;
+      font-weight: 900;
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+
+    #prevBtn { background: #fff; color: var(--q-text-color); }
+    #nextBtn { background: var(--blue); color: white; }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    #feedbackSmiley {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 160px;
+      z-index: 2000;
+      transition: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      text-shadow: 0 20px 35px rgba(0,0,0,0.15);
+    }
+    #feedbackSmiley.show { transform: translate(-50%, -50%) scale(1); }
+
+    .final-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+    .final-modal {
+      background: white;
+      padding: 50px;
+      border-radius: 40px;
+      text-align: center;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+      width: min(650px, 90%);
+    }
+
+    @media (max-width: 600px) {
+      .question-card { flex-direction: column; text-align: center; }
+      .opts { flex-direction: column; align-items: center; gap: 20px; }
+      .choice-wrap { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-circle" style="width: 400px; height: 400px; top: -100px; left: -100px; background: #FFF9C4;"></div>
+  <div class="bg-circle" style="width: 300px; height: 300px; bottom: -50px; right: -50px; background: #E1F5FE;"></div>
+
+  <div class="wrap">
+    <div class="question-area">
+      <div class="q-number" id="qNumber">Question 1 of 5</div>
+
+      <div class="question-card">
+        <div class="hint-img-box">
+          <img id="hintImg" src="" alt="Hint">
+        </div>
+
+        <p class="q-text" id="qText">Loading...</p>
+
+        <button id="readBtn" class="bird-btn" title="Read question">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="opts">
+        <div class="choice-wrap">
+          <button id="btnT" class="big-btn">TRUE</button>
+          <div id="magicT" class="magic-orbit">
+            <div class="sparkle-trail"></div>
+            <div class="angel">👼<span style="font-size:25px; position:absolute; top:0; right:-8px;">🪄</span></div>
+          </div>
+        </div>
+
+        <div class="choice-wrap">
+          <button id="btnF" class="big-btn">FALSE</button>
+          <div id="magicF" class="magic-orbit">
+            <div class="sparkle-trail"></div>
+            <div class="angel">👼<span style="font-size:25px; position:absolute; top:0; right:-8px;">🪄</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="prevBtn" class="nav-btn">◀ PREV</button>
+        <button id="nextBtn" class="nav-btn" disabled>NEXT ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="feedbackSmiley"></div>
+  <canvas id="confettiCanvas" style="position:fixed; top:0; left:0; pointer-events:none; z-index:99;"></canvas>
+
+  <script>
+    const questions = [
+      { text: "Our eyes help us to listen.", answer: false, img: "../uploads/eyes.png" },
+      { text: "Each hand has ten fingers.", answer: false, img: "../uploads/hand.png" },
+      { text: "We have five sense organs.", answer: true, img: "../uploads/so.png" },
+      { text: "Our legs help us to eat and hold things.", answer: false, img: "../uploads/eat.png" },
+      { text: "Our skin helps us to feel things.", answer: true, img: "../uploads/feel.png" }
+    ];
+
+    let idx = 0;
+    let solved = false;
+
+    const qNumber = document.getElementById("qNumber");
+    const qText = document.getElementById("qText");
+    const hintImg = document.getElementById("hintImg");
+
+    const btnT = document.getElementById("btnT");
+    const btnF = document.getElementById("btnF");
+    const magicT = document.getElementById("magicT");
+    const magicF = document.getElementById("magicF");
+
+    const feedbackSmiley = document.getElementById("feedbackSmiley");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const readBtn = document.getElementById("readBtn");
+
+    /* ✅ Question reading technique */
+    function speakText(txt) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(txt);
+      u.lang = "en-IN";
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }
+    readBtn.onclick = () => speakText(questions[idx].text);
+
+    /* ✅ WebAudio ONLY sounds (no mp3) */
+    let audioCtx = null;
+    function ensureAudio(){
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }
+
+    // ✅ Wrong Zzz sound
+    function playZzzSound(){
+      const ctx = ensureAudio();
+      const now = ctx.currentTime;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'square'; o.frequency.value = 180;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.12, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now); o.stop(now + 0.35);
+    }
+
+    // ✅ Celebration sound (happy bell-like)
+    function playCelebrateSound(){
+      const ctx = ensureAudio();
+      const now = ctx.currentTime;
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.linearRampToValueAtTime(0.18, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+      g.connect(ctx.destination);
+
+      const freqs = [660, 880, 1100, 1320];
+
+      freqs.forEach((f, i) => {
+        const o = ctx.createOscillator();
+        o.type = "sine";
+        o.frequency.setValueAtTime(f, now + i * 0.02);
+        o.connect(g);
+        o.start(now + i * 0.02);
+        o.stop(now + 0.65);
+      });
+    }
+
+    function playCompletionTone(){
+      const ctx = ensureAudio();
+      const now = ctx.currentTime;
+
+      const freqs = [660, 880, 1320];
+      const gain = ctx.createGain();
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.01);
+
+      freqs.forEach(f=>{
+        const o = ctx.createOscillator();
+        o.type = "sine";
+        o.frequency.value = f;
+        o.connect(gain);
+        o.start(now);
+        o.stop(now + 1.2);
+      });
+
+      gain.connect(ctx.destination);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+    }
+
+    function showSmiley(emoji){
+      feedbackSmiley.textContent = emoji;
+      feedbackSmiley.classList.add("show");
+      setTimeout(()=>feedbackSmiley.classList.remove("show"), 1000);
+    }
+
+    function updateNav(){
+      prevBtn.disabled = (idx === 0);
+      nextBtn.disabled = !solved;
+      nextBtn.textContent = (idx === questions.length - 1) ? "FINISH 🏁" : "NEXT ▶";
+    }
+
+    function showQuestion(i){
+      const q = questions[i];
+      solved = false;
+
+      qNumber.textContent = `Question ${i + 1} of ${questions.length}`;
+      qText.textContent = q.text;
+      hintImg.src = q.img;
+
+      [btnT, btnF].forEach(b=>{
+        b.classList.remove("correct","wrong");
+        b.disabled = false;
+      });
+
+      magicT.classList.remove("show");
+      magicF.classList.remove("show");
+
+      updateNav();
+    }
+
+    /* ✅ Confetti */
+    const canvas = document.getElementById("confettiCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function triggerConfetti(duration = 1200){
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let particles = Array.from({length: 140}, () => ({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * 200,
+        vx: (Math.random() - 0.5) * 6,
+        vy: 2 + Math.random() * 6,
+        size: 4 + Math.random() * 6,
+        rot: Math.random() * 360,
+        rs: (Math.random() - 0.5) * 12,
+        color: `hsl(${Math.random()*360},100%,55%)`
+      }));
+
+      let start = performance.now();
+
+      function draw(t){
+        const elapsed = t - start;
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+
+        particles.forEach(p=>{
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot * Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.7);
+          ctx.restore();
+
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.06;
+          p.rot += p.rs;
+        });
+
+        if(elapsed < duration){
+          requestAnimationFrame(draw);
+        }else{
+          ctx.clearRect(0,0,canvas.width, canvas.height);
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+
+    function selectAnswer(userChoice){
+      if(solved) return;
+
+      const q = questions[idx];
+      const correct = (q.answer === userChoice);
+
+      if(correct){
+        solved = true;
+
+        const correctBtn = userChoice ? btnT : btnF;
+        const magicDiv = userChoice ? magicT : magicF;
+
+        correctBtn.classList.add("correct");
+        magicDiv.classList.add("show");
+
+        playCelebrateSound();   // ✅ celebration sound (no mp3)
+        showSmiley("😃");       // ✅ big smile
+        triggerConfetti(1300);  // ✅ confetti
+
+        btnT.disabled = true;
+        btnF.disabled = true;
+
+      }else{
+        const wrongBtn = userChoice ? btnT : btnF;
+        wrongBtn.classList.add("wrong");
+
+        playZzzSound();     // ✅ zzz sound (no mp3)
+        showSmiley("😭");   // ✅ crying emoji
+
+        setTimeout(()=>{
+          wrongBtn.classList.remove("wrong");
+        }, 550);
+      }
+
+      updateNav();
+    }
+
+    btnT.onclick = () => selectAnswer(true);
+    btnF.onclick = () => selectAnswer(false);
+
+    prevBtn.onclick = () => {
+      if(idx > 0){
+        idx--;
+        showQuestion(idx);
+      }
+    };
+
+    nextBtn.onclick = () => {
+      if(nextBtn.disabled) return;
+
+      if(idx < questions.length - 1){
+        idx++;
+        showQuestion(idx);
+      } else {
+        finishQuiz();
+      }
+    };
+
+    function finishQuiz(){
+      playCompletionTone();
+      triggerConfetti(2400);
+
+      const modal = document.createElement("div");
+      modal.className = "final-modal-overlay";
+      modal.innerHTML = `
+        <div class="final-modal">
+          <h1 style="margin:0; font-size:54px; color:#2c7a4b;">🏆 SUPERSTAR!</h1>
+          <p style="font-size:24px; color:#2F4F4F;">You finished all questions 🎉</p>
+          <button class="nav-btn"
+            onclick="location.reload()"
+            style="background:var(--pink); color:white; margin-top:18px;">
+            PLAY AGAIN ↺
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    showQuestion(0);
+  </script>
+</body>
+</html>

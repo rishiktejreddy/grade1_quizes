@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>II Chapter Quiz</title>
+
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📘</text></svg>">
+
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg1:#fde2e4;
+      --bg2:#e2f0fb;
+      --bg3:#e8f8e8;
+      --sidebar-bg: #b4f0d6;
+      --text-color: #2c3e50;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Livvic';
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top left, var(--bg1), transparent 55%),
+        radial-gradient(circle at bottom right, var(--bg2), transparent 55%),
+        radial-gradient(circle at center, var(--bg3), #ffffff 60%);
+    }
+
+    .sidebar {
+      width: 320px;
+      font-family: 'Livvic';
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .l-name {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: clamp(18pt, 4vw, 30pt);
+      color: #1F3C5B;
+      letter-spacing: 1px;
+      font-weight: 600;
+      text-shadow: 2px 2px 0px #b2ebf2;
+    }
+
+    .menu-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      padding: 18px 22px;
+      border: none;
+      border-radius: 20px;
+      font-family: 'Livvic';
+      font-size: 20px;
+      font-weight: 600;
+      color: #1F3C5B;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      text-align: left;
+      margin-bottom: 6px;
+    }
+
+    .sticker-icon {
+      font-size: 30px;
+      margin-right: 14px;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+      transition: transform 0.3s;
+    }
+
+    /* Button Colors */
+    .btn-1 {
+      background-color: #e4c7e2;
+      border: 2px solid #FFB37A;
+    }
+
+    .btn-2 {
+      background-color: #CFE8B3;
+      border: 2px solid #CFE8B3;
+    }
+
+    .btn-3 {
+      background-color: #FFD84D;
+      border: 2px solid #F4C2C2;
+    }
+
+    .btn-4 {
+      background-color: #86BCD5;
+      border: 2px solid #86BCD5;
+    }
+
+    .btn-5 {
+      background-color: #FFE6A7;
+      border: 2px solid #FFE6A7;
+    }
+
+    .btn-6 {
+      background-color: #B8B5FF;
+      border: 2px solid #B8B5FF;
+    }
+
+    .menu-btn:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    .menu-btn:hover .sticker-icon {
+      transform: rotate(15deg) scale(1.2);
+    }
+
+    .menu-btn:active,
+    .menu-btn.active {
+      transform: translateY(4px);
+      filter: brightness(0.95);
+    }
+
+    .menu-btn.active {
+      outline: 4px solid #f778a1;
+    }
+
+    .content {
+      flex: 1;
+      background: transparent;
+      position: relative;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .iframe-wrapper {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        flex-direction: row;
+        overflow-x: auto;
+        border-bottom: 5px solid #b2ebf2;
+        box-sizing: border-box;
+      }
+
+      .l-name {
+        display: none;
+      }
+
+      .menu-container {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .menu-btn {
+        font-size: 16px;
+        padding: 12px 14px;
+        white-space: nowrap;
+        flex: 1;
+        margin-bottom: 0;
+      }
+
+      .sticker-icon {
+        font-size: 22px;
+        margin-right: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <h2 class="l-name">Chapter 2 Quiz</h2>
+
+    <div class="menu-container">
+
+      <!-- I -->
+      <button class="menu-btn btn-1" data-file="exercises/ex1.html">
+        <span class="sticker-icon">✅</span> Tick Correct Answer
+      </button>
+
+      <!-- II -->
+      <button class="menu-btn btn-2" data-file="exercises/ex2.html">
+        <span class="sticker-icon">📝</span> Fill in the Blanks
+      </button>
+
+      <!-- III -->
+      <button class="menu-btn btn-3" data-file="exercises/ex3.html">
+        <span class="sticker-icon">🔍</span> True / False
+      </button>
+
+      <!-- IV -->
+      <button class="menu-btn btn-4" data-file="exercises/ex4.html">
+        <span class="sticker-icon">💡</span> One Word Answers
+      </button>
+
+      <!-- V -->
+      <button class="menu-btn btn-5" data-file="exercises/ex5.html">
+        <span class="sticker-icon">🔗</span> Match the Following
+      </button>
+
+      <!-- VI -->
+      <button class="menu-btn btn-6" data-file="exercises/ex6.html">
+        <span class="sticker-icon">🌟</span> Give One Example
+      </button>
+
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="iframe-wrapper">
+      <iframe id="quizFrame" src=""></iframe>
+    </div>
+  </div>
+
+  <script>
+    const iframe = document.getElementById('quizFrame');
+    const buttons = document.querySelectorAll('.menu-btn');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const file = btn.getAttribute('data-file');
+        openQuiz(file, btn);
+      });
+    });
+
+    function openQuiz(file, btn) {
+      iframe.src = file;
+
+      buttons.forEach(b => b.classList.remove('active'));
+
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        const match = Array.from(buttons).find(b => b.getAttribute('data-file') === file);
+        if (match) match.classList.add('active');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const defaultFile = 'exercises/ex1.html';
+      openQuiz(defaultFile);
+    });
+  </script>
+
+</body>
+
+</html>

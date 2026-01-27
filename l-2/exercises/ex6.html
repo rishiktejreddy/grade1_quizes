@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Example🎨</title>
+
+  <!-- ✅ Livvic Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#fde2e4;
+      --bg2:#e2f0fb;
+      --bg3:#e8f8e8;
+
+      --text:#2f4f4f;
+      --fill-color:#4cc9f0;
+
+      --btnBlue:#4cc9f0;
+      --btnPink:#f778a1;
+    }
+
+    *{
+      font-family:'Livvic', sans-serif;
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at top left, var(--bg1), transparent 55%),
+        radial-gradient(circle at bottom right, var(--bg2), transparent 55%),
+        radial-gradient(circle at center, var(--bg3), #ffffff 60%);
+    }
+
+    /* ✅ no card */
+    .quiz-area{
+      width:95%;
+      max-width:1000px;
+      padding:20px 12px;
+      text-align:center;
+    }
+
+    /* ✅ SAME AS TICK QUIZ q-number */
+     .q-number {
+      font-weight: 400;
+      color: var(--q-text-color);
+      opacity: .9;
+    }
+
+    /* ✅ SAME AS TICK QUIZ q-text */
+    .q-text{
+      font-size: clamp(20pt, 4vw, 34pt);
+      color:#2F4F4F;
+      margin-bottom:18px;
+      display:inline-block;
+      line-height:1.2;
+      font-weight:500;
+      margin-top:12px;
+    }
+
+    /* ✅ NEW: question + read button row */
+    .qRow{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
+
+    /* ✅ Read btn (same like tick quiz) */
+    .bird-btn{
+      background: #FFD54F;
+      border: none;
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #E0B93F;
+      transition: 0.15s;
+      user-select:none;
+    }
+    .bird-btn:hover{ transform: translateY(-2px); }
+    .bird-btn:active{ transform: translateY(3px); box-shadow:none; }
+    .bird-btn svg{ width: 34px; fill: #2C3E50; }
+
+    .options-row{
+      display:flex;
+      justify-content:center;
+      gap:26px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    /* tank option */
+    .tank-wrapper{
+      cursor:pointer;
+      width:200px;
+      transition:transform 0.2s ease;
+    }
+    .tank-wrapper:hover{ transform: translateY(-6px); }
+
+    .image-tank{
+      width:200px;
+      height:200px;
+      margin:0 auto;
+      border:5px solid rgba(47,79,79,0.18);
+      border-radius:22px;
+      overflow:hidden;
+      background:rgba(255,255,255,0.65);
+      position:relative;
+      box-shadow:0 18px 35px rgba(0,0,0,0.12);
+    }
+
+    .grey-img{
+      width:90%;
+      height:90%;
+      margin:10%;
+      filter:grayscale(1);
+      opacity:0.45;
+      position:relative;
+      z-index:2;
+    }
+
+    .liquid{
+      position:absolute;
+      bottom:0;
+      left:0;
+      width:100%;
+      height:0%;
+      background:var(--fill-color);
+      transition: height 1.4s cubic-bezier(0.4,0,0.2,1);
+      z-index:1;
+    }
+
+    .color-img{
+      position:absolute;
+      top:10%;
+      left:10%;
+      width:80%;
+      height:80%;
+      opacity:0;
+      z-index:3;
+      transition:opacity 1.4s;
+    }
+
+    .filled .liquid{ height:100%; }
+    .filled .color-img{ opacity:1; }
+    .filled .image-tank{ border-color: var(--fill-color); }
+
+    /* ✅ SAME AS TICK QUIZ label */
+    .label{
+      font-size:24px;
+      font-weight:500;
+      color:#2F4F4F;
+      font-family:'Livvic', sans-serif;
+      text-align:center;
+      margin-top:14px;
+      display:block;
+    }
+
+    .wrong-shake{ animation: shake 0.35s; }
+    @keyframes shake{
+      0%,100%{ transform:translateX(0); }
+      25%{ transform:translateX(-6px); }
+      75%{ transform:translateX(6px); }
+    }
+
+    /* buttons */
+    .nav-row{
+      display:flex;
+      justify-content:center;
+      gap:18px;
+      margin-top:36px;
+      flex-wrap:wrap;
+    }
+
+    .nav-btn{
+      padding:18px 34px;
+      border:none;
+      border-radius:999px;
+      font-weight:500;
+      font-size:22px;
+      cursor:pointer;
+      color:white;
+      box-shadow:0 10px 22px rgba(0,0,0,0.15);
+      transition:0.15s ease;
+    }
+
+    .nav-btn:hover{ transform: translateY(-2px); }
+    .nav-btn:active{ transform: translateY(2px); box-shadow:none; }
+
+    #prevBtn{ background: var(--btnPink); }
+    #nextBtn{ background: var(--btnBlue); }
+
+    .nav-btn.disabled{
+      opacity:0.45;
+      pointer-events:none;
+      filter:grayscale(0.8);
+      transform:none !important;
+      box-shadow:none;
+    }
+
+    /* Big emoji popup (ONLY emoji) */
+    #bigEmoji{
+      position:fixed;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%) scale(0);
+      font-size:220px;
+      z-index:999;
+      pointer-events:none;
+      transition:0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-shadow:0 24px 40px rgba(0,0,0,0.18);
+    }
+    #bigEmoji.show{
+      transform:translate(-50%,-50%) scale(1);
+    }
+
+    /* Confetti */
+    .confetti{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:998;
+      display:none;
+    }
+    .confetti span{
+      position:absolute;
+      width:12px;
+      height:12px;
+      top:-20px;
+      border-radius:3px;
+      animation: fall 1.2s linear forwards;
+    }
+    @keyframes fall{
+      to{ transform: translateY(110vh) rotate(360deg); }
+    }
+
+    @media (max-width:650px){
+      .nav-btn{ font-size:20px; padding:16px 28px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-area">
+    <div id="quiz-content"></div>
+
+    <div class="nav-row">
+      <button id="prevBtn" class="nav-btn" onclick="prevSlide()">◀ PREV</button>
+      <button id="nextBtn" class="nav-btn disabled" onclick="nextSlide()">NEXT ▶</button>
+    </div>
+  </div>
+
+  <!-- ✅ ONLY Emoji -->
+  <div id="bigEmoji">😄</div>
+
+  <!-- 🎉 Confetti -->
+  <div class="confetti" id="confetti"></div>
+
+  <script>
+    const quizData = [
+      {
+        q: "Give an example of a Body Part:",
+        options: [
+          { name: "Pencil", img: "https://cdn-icons-png.flaticon.com/512/588/588395.png", correct: false },
+          { name: "Hand", img: "https://cdn-icons-png.flaticon.com/512/2331/2331885.png", correct: true },
+          { name: "Apple", img: "https://cdn-icons-png.flaticon.com/512/415/415733.png", correct: false }
+        ]
+      },
+      {
+        q: "An activity we do with our Hands:",
+        options: [
+          { name: "Writing", img: "https://cdn-icons-png.flaticon.com/512/3232/3232717.png", correct: true },
+          { name: "Running", img: "https://cdn-icons-png.flaticon.com/512/10433/10433061.png", correct: false },
+          { name: "Sleeping", img: "https://cdn-icons-png.flaticon.com/512/3094/3094831.png", correct: false }
+        ]
+      },
+      {
+        q: "An activity we do with our Legs:",
+        options: [
+          { name: "Eating", img: "https://cdn-icons-png.flaticon.com/512/1046/1046857.png", correct: false },
+          { name: "Jumping", img: "https://cdn-icons-png.flaticon.com/512/4663/4663165.png", correct: true },
+          { name: "Singing", img: "https://cdn-icons-png.flaticon.com/512/3083/3083417.png", correct: false }
+        ]
+      },
+      {
+        q: "Give an example of a Sense Organ:",
+        options: [
+          { name: "Nose", img: "https://cdn-icons-png.flaticon.com/512/1491/1491325.png", correct: true },
+          { name: "Hair", img: "https://cdn-icons-png.flaticon.com/512/2553/2553757.png", correct: false },
+          { name: "Nail", img: "https://cdn-icons-png.flaticon.com/512/2361/2361099.png", correct: false }
+        ]
+      },
+      {
+        q: "An activity we do with our Nose:",
+        options: [
+          { name: "Tasting", img: "https://cdn-icons-png.flaticon.com/512/3565/3565145.png", correct: false },
+          { name: "Smelling", img: "https://cdn-icons-png.flaticon.com/512/1491/1491325.png", correct: true },
+          { name: "Hearing", img: "https://cdn-icons-png.flaticon.com/512/435/435555.png", correct: false }
+        ]
+      }
+    ];
+
+    let currentSlide = 0;
+    let slideSolved = false;
+
+    const confettiBox = document.getElementById("confetti");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const bigEmoji = document.getElementById("bigEmoji");
+
+    /* ✅ Sound logic (AudioContext Oscillator) */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === "correct") {
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } else {
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      }
+    }
+
+    /* ✅ Question reading technique (same like tick quiz) */
+    function speakText(txt) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+
+      const u = new SpeechSynthesisUtterance(txt);
+      u.lang = "en-IN";
+      u.rate = 0.95;
+
+      window.speechSynthesis.speak(u);
+    }
+
+    function showEmoji(emoji) {
+      bigEmoji.textContent = emoji;
+      bigEmoji.classList.add("show");
+      setTimeout(() => bigEmoji.classList.remove("show"), 900);
+    }
+
+    function makeConfetti() {
+      confettiBox.innerHTML = "";
+      confettiBox.style.display = "block";
+
+      for (let i = 0; i < 55; i++) {
+        const piece = document.createElement("span");
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.animationDelay = Math.random() * 0.3 + "s";
+        piece.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+        confettiBox.appendChild(piece);
+      }
+
+      setTimeout(() => {
+        confettiBox.style.display = "none";
+      }, 1300);
+    }
+
+    function renderSlide() {
+      const data = quizData[currentSlide];
+      const container = document.getElementById("quiz-content");
+
+      slideSolved = false;
+      nextBtn.classList.add("disabled");
+
+      prevBtn.classList.toggle("disabled", currentSlide === 0);
+
+      const optionsHTML = data.options.map((opt) => `
+        <div class="tank-wrapper" onclick="handleChoice(this, ${opt.correct})">
+          <div class="image-tank">
+            <div class="liquid"></div>
+            <img src="${opt.img}" class="grey-img" />
+            <img src="${opt.img}" class="color-img" />
+          </div>
+          <span class="label">${opt.name}</span>
+        </div>
+      `).join("");
+
+      container.innerHTML = `
+        <div class="q-number">Question ${currentSlide + 1} of ${quizData.length}</div>
+
+        <div class="qRow">
+          <div class="q-text">${data.q}</div>
+
+          <button class="bird-btn" title="Read question" onclick="speakText(quizData[${currentSlide}].q)">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="options-row">${optionsHTML}</div>
+      `;
+    }
+
+    function lockOptions() {
+      document.querySelectorAll(".tank-wrapper").forEach(t => t.style.pointerEvents = "none");
+    }
+
+    function handleChoice(el, isCorrect) {
+      if (slideSolved) return;
+
+      if (isCorrect) {
+        slideSolved = true;
+        el.classList.add("filled");
+
+        playSound("correct");
+        showEmoji("😄");
+        makeConfetti();
+
+        lockOptions();
+        nextBtn.classList.remove("disabled");
+      } else {
+        el.classList.add("wrong-shake");
+        playSound("wrong");
+        showEmoji("😢");
+
+        setTimeout(() => el.classList.remove("wrong-shake"), 400);
+      }
+    }
+
+    function nextSlide() {
+      if (nextBtn.classList.contains("disabled")) return;
+
+      if (currentSlide < quizData.length - 1) {
+        currentSlide++;
+        renderSlide();
+      } else {
+        document.querySelector(".quiz-area").innerHTML = `
+          <h1 style="font-size:70px;margin:0;">🎉</h1>
+          <div style="font-size:clamp(20pt, 4vw, 34pt);font-weight:500;color:#2f4f4f;margin-top:10px;">
+            FULL OF COLOR!
+          </div>
+          <div style="font-size:24px;font-weight:500;color:rgba(47,79,79,0.75);margin-top:10px;">
+            You completed the quiz ✅
+          </div>
+          <div class="nav-row" style="margin-top:28px;">
+            <button class="nav-btn" style="background:#4cc9f0;" onclick="location.reload()">REPLAY 🔁</button>
+          </div>
+        `;
+        makeConfetti();
+        playSound("correct");
+      }
+    }
+
+    function prevSlide() {
+      if (prevBtn.classList.contains("disabled")) return;
+      currentSlide--;
+      renderSlide();
+    }
+
+    renderSlide();
+  </script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Electric Matching ⚡</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#fde2e4;
+      --bg2:#e2f0fb;
+      --bg3:#e8f8e8;
+
+      --ink:#2f4f4f;
+      --boxBorder:#d8e6ee;
+      --bulbOn:#ffd700;
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:'Livvic',sans-serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:
+        radial-gradient(circle at top left, var(--bg1), transparent 55%),
+        radial-gradient(circle at bottom right, var(--bg2), transparent 55%),
+        radial-gradient(circle at center, var(--bg3), #ffffff 60%);
+      overflow:hidden;
+    }
+
+    .game{
+      width:95%;
+      max-width:1200px;
+      padding:24px 10px;
+      text-align:center;
+    }
+
+    /* ✅ SAME AS TICK QUIZ q-text style */
+    .q-text{
+      font-size: clamp(20pt, 4vw, 34pt);
+      color: #2F4F4F;
+      margin-bottom: 18px;
+      display: inline-block;
+      line-height: 1.2;
+      font-weight: 500;
+      margin-top: 0;
+    }
+
+    /* ✅ SAME AS TICK QUIZ q-number style */
+    .q-number{
+      text-align: center;
+      font-size: 18px;
+      color: #2F4F4F;
+      margin-bottom: 10px;
+      font-weight: 500;
+
+      background: rgba(255, 255, 255, 0.5);
+      padding: 8px 20px;
+      border-radius: 50px;
+      display: inline-block;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      line-height: 1.35;
+    }
+
+    /* ✅ SAME AS TICK QUIZ label style */
+    .label{
+      font-size: 24px;
+      font-weight: 500;
+      color: #2F4F4F;
+      font-family: 'Livvic', sans-serif;
+      text-align: center;
+    }
+
+    .headings{
+      display:grid;
+      grid-template-columns: 1fr 220px 1.25fr;
+      gap:26px;
+      align-items:center;
+      margin-top:18px;
+      margin-bottom:14px;
+      padding:0 10px;
+    }
+
+    .rows{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      padding:0 10px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 220px 1.25fr;
+      gap:26px;
+      align-items:center;
+    }
+
+    .lhs-item,
+    .rhs-item{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:18px 18px;
+      border-radius:18px;
+      background:rgba(255,255,255,0.86);
+      border:2px solid rgba(47,79,79,0.10);
+    }
+
+    .lhs-item img{
+      width:56px;
+      height:56px;
+      flex-shrink:0;
+    }
+
+    /* ✅ same as Tick quiz .label */
+    .lhs-text{
+      font-size: 32px;
+      font-weight: 500;
+      color: #2F4F4F;
+      font-family: 'Livvic', sans-serif;
+      text-align:left;
+    }
+
+    .midBox{
+      width:100%;
+      height:70px;
+      background:#fff;
+      border:3px solid var(--boxBorder);
+      border-radius:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 12px 24px rgba(0,0,0,0.08);
+    }
+
+    .midBox input{
+      width:100%;
+      height:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      text-align:center;
+      font-family:'Livvic',sans-serif;
+      font-size:36px;
+      font-weight:500;
+      color:var(--ink);
+      text-transform:lowercase;
+    }
+
+    .midBox.correct{
+      border-color:#2ecc71;
+      box-shadow:0 0 0 7px rgba(46,204,113,0.25);
+    }
+
+    .midBox.wrong{
+      border-color:#ff595e;
+      box-shadow:0 0 0 7px rgba(255,89,94,0.22);
+      animation:shake 0.35s ease;
+    }
+
+    @keyframes shake{
+      0%{ transform: translateX(0); }
+      25%{ transform: translateX(-8px); }
+      50%{ transform: translateX(8px); }
+      75%{ transform: translateX(-6px); }
+      100%{ transform: translateX(0); }
+    }
+
+    .rhs-item{
+      justify-content:space-between;
+      gap:16px;
+    }
+
+    .rhs-left{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex:1;
+    }
+
+    .rhs-left img{
+      width:46px;
+      height:46px;
+      flex-shrink:0;
+      opacity:0.95;
+    }
+
+    .rhs-desc{
+      text-align:left;
+      font-size:32px;
+      font-weight:500;
+      color:var(--ink);
+      line-height:1.25;
+    }
+
+    .bulb{
+      font-size:36px;
+      filter: grayscale(1);
+      opacity:0.65;
+      transition:0.25s;
+      flex-shrink:0;
+    }
+
+    .bulb.glow{
+      filter: grayscale(0);
+      opacity:1;
+      text-shadow:0 0 18px var(--bulbOn);
+    }
+
+    #msg{
+      margin-top:24px;
+      font-size:28px;
+      font-weight:500;
+      color:#2ecc71;
+      min-height:36px;
+    }
+
+    /* BIG FEEDBACK EMOJI */
+    #feedback{
+      position:fixed;
+      top:45%;
+      left:50%;
+      transform:translate(-50%,-50%) scale(0);
+      font-size:220px;
+      transition:0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index:999;
+      pointer-events:none;
+      text-shadow:0 24px 40px rgba(0,0,0,0.18);
+    }
+    #feedback.show{
+      transform:translate(-50%,-50%) scale(1);
+    }
+
+    /* Confetti */
+    .confetti{
+      position:fixed;
+      top:-10px;
+      width:12px;
+      height:16px;
+      border-radius:3px;
+      opacity:0.95;
+      animation:fall 1.2s linear forwards;
+      z-index:998;
+      pointer-events:none;
+    }
+    @keyframes fall{
+      to{
+        transform:translateY(110vh) rotate(620deg);
+        opacity:0;
+      }
+    }
+
+    @media (max-width: 980px){
+      .headings{ display:none; }
+      .row{ grid-template-columns: 1fr; }
+      .midBox{ height:72px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game">
+    <div class="q-text">Match the Following ⚡</div>
+
+    <div class="q-number">
+      Type <b>a</b>, <b>b</b>, <b>c</b>, <b>d</b> in the middle boxes ✅<br/>
+      When correct → bulb glows 💡
+    </div>
+
+    <div class="headings">
+      <div class="label">Body Parts</div>
+      <div class="label">Your Answer</div>
+      <div class="label">Descriptions</div>
+    </div>
+
+    <div class="rows">
+
+      <!-- ROW 1 -->
+      <div class="row">
+        <div class="lhs-item">
+          <img src="https://cdn-icons-png.flaticon.com/512/3233/3233483.png" alt="Head">
+          <div class="lhs-text">1. Head</div>
+        </div>
+
+        <div class="midBox" id="box1">
+          <input id="ans1" maxlength="1" placeholder="?" />
+        </div>
+
+        <div class="rhs-item">
+          <div class="rhs-left">
+            <img src="https://cdn-icons-png.flaticon.com/512/2331/2331885.png" alt="Hands">
+            <div class="rhs-desc"><b>a)</b> They help us to hold things and write.</div>
+          </div>
+          <div class="bulb" id="bulb-a">💡</div>
+        </div>
+      </div>
+
+      <!-- ROW 2 -->
+      <div class="row">
+        <div class="lhs-item">
+          <img src="https://cdn-icons-png.flaticon.com/512/2061/2061327.png" alt="Trunk">
+          <div class="lhs-text">2. Trunk</div>
+        </div>
+
+        <div class="midBox" id="box2">
+          <input id="ans2" maxlength="1" placeholder="?" />
+        </div>
+
+        <div class="rhs-item">
+          <div class="rhs-left">
+            <img src="https://cdn-icons-png.flaticon.com/512/3233/3233483.png" alt="Head">
+            <div class="rhs-desc"><b>b)</b> It has eyes, nose, mouth and ears.</div>
+          </div>
+          <div class="bulb" id="bulb-b">💡</div>
+        </div>
+      </div>
+
+      <!-- ROW 3 -->
+      <div class="row">
+        <div class="lhs-item">
+          <img src="https://cdn-icons-png.flaticon.com/512/2331/2331885.png" alt="Hands">
+          <div class="lhs-text">3. Hands</div>
+        </div>
+
+        <div class="midBox" id="box3">
+          <input id="ans3" maxlength="1" placeholder="?" />
+        </div>
+
+        <div class="rhs-item">
+          <div class="rhs-left">
+            <img src="https://cdn-icons-png.flaticon.com/512/2361/2361136.png" alt="Legs">
+            <div class="rhs-desc"><b>c)</b> They help us to stand, walk, jump and run.</div>
+          </div>
+          <div class="bulb" id="bulb-c">💡</div>
+        </div>
+      </div>
+
+      <!-- ROW 4 -->
+      <div class="row">
+        <div class="lhs-item">
+          <img src="https://cdn-icons-png.flaticon.com/512/2361/2361136.png" alt="Legs">
+          <div class="lhs-text">4. Legs</div>
+        </div>
+
+        <div class="midBox" id="box4">
+          <input id="ans4" maxlength="1" placeholder="?" />
+        </div>
+
+        <div class="rhs-item">
+          <div class="rhs-left">
+            <img src="https://cdn-icons-png.flaticon.com/512/2061/2061327.png" alt="Trunk">
+            <div class="rhs-desc"><b>d)</b> It is the part of the body other than head and limbs.</div>
+          </div>
+          <div class="bulb" id="bulb-d">💡</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="msg"></div>
+  </div>
+
+  <!-- BIG feedback -->
+  <div id="feedback"></div>
+
+  <script>
+    /* ✅ SAME SOUND LOGIC AS YOUR DRAG & DROP GAME */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === "correct") {
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+      } else {
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      }
+    }
+
+    const correctMap = {
+      1: "b",
+      2: "d",
+      3: "a",
+      4: "c"
+    };
+
+    const solved = { 1:false, 2:false, 3:false, 4:false };
+    const feedback = document.getElementById("feedback");
+
+    function glowBulb(letter) {
+      const bulb = document.getElementById("bulb-" + letter);
+      if (bulb) bulb.classList.add("glow");
+    }
+
+    function showEmoji(emoji) {
+      feedback.textContent = emoji;
+      feedback.classList.add("show");
+      setTimeout(() => feedback.classList.remove("show"), 1200);
+    }
+
+    function spawnConfetti() {
+      for (let i = 0; i < 40; i++) {
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.transform = `rotate(${Math.random() * 360}deg)`;
+        c.style.background = ["#ffadad","#ffd6a5","#fdffb6","#caffbf","#9bf6ff","#a0c4ff","#bdb2ff","#ffc6ff"][Math.floor(Math.random() * 8)];
+        c.style.animationDuration = (0.9 + Math.random() * 0.9) + "s";
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 1600);
+      }
+    }
+
+    function updateWin() {
+      const allDone = Object.values(solved).every(v => v === true);
+      const msg = document.getElementById("msg");
+      msg.textContent = allDone ? "🎉 ALL CORRECT! All bulbs are glowing! 💡✨" : "";
+    }
+
+    function checkAnswer(num) {
+      const input = document.getElementById("ans" + num);
+      const box = document.getElementById("box" + num);
+
+      let val = (input.value || "").trim().toLowerCase();
+      input.value = val.replace(/[^a-d]/g, "");
+      val = input.value;
+
+      if (!val) {
+        box.classList.remove("correct","wrong");
+        return;
+      }
+
+      if (val === correctMap[num]) {
+        if (!solved[num]) {
+          solved[num] = true;
+          glowBulb(val);
+        }
+
+        box.classList.remove("wrong");
+        box.classList.add("correct");
+
+        playSound("correct");
+        showEmoji("😄");
+        spawnConfetti();
+
+        input.disabled = true;
+        updateWin();
+      } else {
+        box.classList.remove("correct");
+        box.classList.add("wrong");
+
+        playSound("wrong");
+        showEmoji("😢");
+
+        setTimeout(() => {
+          box.classList.remove("wrong");
+          input.value = "";
+        }, 350);
+      }
+    }
+
+    [1,2,3,4].forEach(n => {
+      const inp = document.getElementById("ans" + n);
+      inp.addEventListener("input", () => checkAnswer(n));
+    });
+  </script>
+</body>
+</html>
