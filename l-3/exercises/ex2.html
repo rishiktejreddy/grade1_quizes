@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drag & Drop Quiz</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg1:#fde2e4;
+  --bg2:#e2f0fb;
+  --bg3:#e8f8e8;
+}
+
+body{
+  font-family:"Livvic",sans-serif;
+  background:"../uploads/bg2.png";
+  height:100vh;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+.app{ width:100%; max-width:1100px; padding:12px; }
+
+.slide{ display:none; }
+.slide.active{ display:block; }
+
+.q-number{
+  text-align:center;
+  font-size:18px;
+  color:#2F4F4F;
+}
+
+.q-text{
+  text-align:center;
+  font-size:clamp(20pt,4vw,34pt);
+  color:#2F4F4F;
+  margin:20px 0 25px;
+}
+
+/* BLANK */
+.blank{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  min-width:180px;
+  height:44px;
+  border-bottom:4px dashed #2F4F4F;
+  font-weight:700;
+}
+.blank.correct{ border-bottom:4px solid #2ed573; }
+
+/* WORD BOX */
+.word-box{
+  max-width:760px;
+  margin:0 auto;
+  background:#ffffffcc;
+  padding:22px;
+  border-radius:30px;
+  box-shadow:0 12px 25px rgba(0,0,0,0.12);
+}
+
+.word-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.word{
+  background:white;
+  padding:18px;
+  text-align:center;
+  border-radius:22px;
+  border:5px solid white;
+  font-size:26px;
+  font-weight:700;
+  color:#2F4F4F;
+  cursor:grab;
+  box-shadow:0 8px 18px rgba(0,0,0,0.12);
+  user-select:none;
+}
+
+.word.dragging{ opacity:.5; }
+.word.used{ opacity:.35; pointer-events:none; }
+
+/* NAV */
+.nav-btn{
+  position:fixed;
+  top:50%;
+  transform:translateY(-50%);
+  font-family:'Fredoka One',cursive;
+  font-size:24px;
+  padding:15px 30px;
+  border-radius:50px;
+  border:4px solid white;
+  cursor:pointer;
+  background:#4cc9f0;
+}
+
+#backBtn{ left:20px; background:#f778a1; }
+#nextBtn{ right:20px; display:none; }
+
+/* SMILEY */
+.smiley{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(.4);
+  font-size:200px;
+  opacity:0;
+  transition:.45s cubic-bezier(.17,.89,.32,1.49);
+  pointer-events:none;
+  z-index:2000;
+}
+
+.smiley.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+
+/* CONFETTI */
+.confetti{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1500;
+}
+
+.confetti-piece{
+  position:absolute;
+  width:10px;
+  height:14px;
+  top:-20px;
+  animation:fall 1.8s linear forwards;
+}
+
+@keyframes fall{
+  to{
+    transform:translateY(100vh) rotate(720deg);
+    opacity:0;
+  }
+}
+
+/* FINAL CARD */
+.final-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(6px);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:3000;
+}
+
+.final-card{
+  background:#C2F4FF;
+  padding:50px;
+  border-radius:40px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div id="slides"></div>
+
+  <button id="backBtn" class="nav-btn">◀ PREV</button>
+  <button id="nextBtn" class="nav-btn">NEXT ▶</button>
+
+  <div id="smiley" class="smiley"></div>
+  <div id="confetti" class="confetti"></div>
+</div>
+
+<script>
+const quiz=[
+ {text:"Animals are _____ things.",answer:"living",words:["living","livng","liviving","liivng","leving","liviing"]},
+ {text:"A pencil is a _____ thing.",answer:"man-made",words:["man-made","manmade","maan-made","man-mad","mam-made","men-made"]},
+ {text:"Plants don't _____ from one place to another.",answer:"move",words:["move","moove","mov","mouve","muve","moev"]},
+ {text:"_____ things have young ones.",answer:"Living",words:["Living","Livng","Liviing","Leving","Liiving","Livin"]},
+ {text:"A mountain is a _____ thing.",answer:"natural",words:["natural","naturall","natrual","naturral","nautral","nathural"]}
+];
+
+const slidesRoot=document.getElementById("slides");
+const nextBtn=document.getElementById("nextBtn");
+const backBtn=document.getElementById("backBtn");
+const smiley=document.getElementById("smiley");
+const confettiBox=document.getElementById("confetti");
+
+let current=0, dragged=null, audioCtx=null;
+
+/* 🔊 AUDIO SETUP */
+function ensureAudio(){
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended") audioCtx.resume();
+}
+
+/* ✅ SUCCESS SOUND */
+function playSuccess(){
+  ensureAudio();
+  const t=audioCtx.currentTime;
+  [880,1100,1320].forEach((f,i)=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type="sine"; o.frequency.value=f;
+    g.gain.setValueAtTime(.001,t+i*.12);
+    g.gain.linearRampToValueAtTime(.25,t+.05+i*.12);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.8+i*.12);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t+i*.12); o.stop(t+.9+i*.12);
+  });
+}
+
+/* ❌ WRONG (ZZZ) SOUND */
+function playZzz(){
+  ensureAudio();
+  const t=audioCtx.currentTime;
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+
+  o.type="sine";
+  o.frequency.setValueAtTime(220,t);
+  o.frequency.exponentialRampToValueAtTime(140,t+.4);
+
+  g.gain.setValueAtTime(.001,t);
+  g.gain.linearRampToValueAtTime(.18,t+.05);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.5);
+
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+.5);
+}
+
+/* 🎉 CONFETTI */
+function launchConfetti(count=120){
+  confettiBox.innerHTML="";
+  const colors=["#f778a1","#4cc9f0","#ffaa00","#2ed573","#ff4fd8"];
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div");
+    p.className="confetti-piece";
+    p.style.left=Math.random()*100+"%";
+    p.style.background=colors[Math.random()*colors.length|0];
+    p.style.animationDuration=(1.2+Math.random())+"s";
+    confettiBox.appendChild(p);
+  }
+  setTimeout(()=>confettiBox.innerHTML="",2200);
+}
+
+/* 😄 😢 */
+function showSmiley(e){
+  smiley.textContent=e;
+  smiley.classList.add("show");
+  setTimeout(()=>smiley.classList.remove("show"),1200);
+}
+
+/* BUILD SLIDES */
+quiz.forEach((q,i)=>{
+  const s=document.createElement("div");
+  s.className="slide"+(i===0?" active":"");
+  s.innerHTML=`
+    <div class="question" data-answered="false">
+      <div class="q-number">Question ${i+1} of ${quiz.length}</div>
+      <div class="q-text">${q.text.replace("_____",
+        `<span class="blank" data-answer="${q.answer}"></span>`)}
+      </div>
+      <div class="word-box">
+        <div class="word-grid">
+          ${q.words.map(w=>`<div class="word" draggable="true">${w}</div>`).join("")}
+        </div>
+      </div>
+    </div>`;
+  slidesRoot.appendChild(s);
+
+  const blank=s.querySelector(".blank");
+
+  s.querySelectorAll(".word").forEach(w=>{
+    w.addEventListener("dragstart",e=>{
+      dragged=w; w.classList.add("dragging");
+      e.dataTransfer.setData("text","x");
+    });
+    w.addEventListener("dragend",()=>w.classList.remove("dragging"));
+  });
+
+  blank.addEventListener("dragover",e=>e.preventDefault());
+  blank.addEventListener("drop",()=>{
+    if(!dragged) return;
+    if(dragged.textContent===blank.dataset.answer){
+      blank.textContent=dragged.textContent;
+      blank.classList.add("correct");
+      dragged.classList.add("used");
+      s.querySelector(".question").dataset.answered="true";
+      showSmiley("😄"); launchConfetti(); playSuccess();
+      nextBtn.style.display="block";
+    }else{
+      showSmiley("😢"); playZzz();
+    }
+  });
+});
+
+/* NAV */
+function showSlide(i){
+  document.querySelectorAll(".slide").forEach((s,idx)=>s.classList.toggle("active",idx===i));
+  current=i;
+  backBtn.style.display=current===0?"none":"block";
+  nextBtn.style.display=document.querySelector(".slide.active .question").dataset.answered==="true"?"block":"none";
+}
+
+nextBtn.onclick=()=>{
+  if(current<quiz.length-1) showSlide(current+1);
+  else showFinal();
+};
+backBtn.onclick=()=>showSlide(current-1);
+
+/* FINAL */
+function showFinal(){
+  launchConfetti(260); playSuccess(); showSmiley("🥳");
+  const d=document.createElement("div");
+  d.className="final-overlay";
+  d.innerHTML=`
+    <div class="final-card">
+      <h1 style="font-family:'Fredoka One';font-size:50px;">🎉 GREAT JOB! 🎉</h1>
+      <p style="font-size:24px;color:#2F4F4F;">You completed the quiz</p>
+      <button class="nav-btn" style="position:static;margin-top:20px"
+        onclick="location.reload()">PLAY AGAIN ↺</button>
+    </div>`;
+  document.body.appendChild(d);
+}
+
+showSlide(0);
+</script>
+</body>
+</html>

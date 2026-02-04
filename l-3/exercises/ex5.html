@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drop the Correct Picture</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg1:#fde2e4;
+  --bg2:#e2f0fb;
+  --bg3:#e8f8e8;
+}
+
+body{
+  font-family:"Livvic",sans-serif;
+  background:
+    "../uploads/bg2.png";
+  height:100vh;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+.app{
+  width:100%;
+  max-width:1100px;
+  padding:30px;
+}
+
+/* QUESTION */
+.q-number{
+  text-align:center;
+  font-size:18px;
+  color:#2F4F4F;
+}
+
+.q-text{
+  text-align:center;
+  font-size:clamp(22pt,4vw,34pt);
+  color:#2F4F4F;
+  margin:18px 0 30px;
+}
+
+/* DROP BOX */
+.drop-box{
+  width:260px;
+  height:180px;
+  margin:0 auto 35px;
+  border:4px dashed #2F4F4F;
+  border-radius:26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  font-weight:600;
+  color:#2F4F4F;
+  background:#ffffffaa;
+}
+
+.drop-box.filled{
+  border-color:#2ed573;
+  background:#dff9fb;
+}
+
+/* OPTIONS */
+.options{
+  display:flex;
+  justify-content:center;
+  gap:40px;
+}
+
+.option{
+  width:180px;
+  height:130px;
+  background:white;
+  border-radius:22px;
+  border:5px solid white;
+  box-shadow:0 8px 18px rgba(0,0,0,0.12);
+  cursor:grab;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.option img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+.option.dragging{ opacity:.5; }
+
+.option.wrong{
+  border-color:#dc3545;
+  box-shadow:0 0 20px #dc3545;
+  animation:shake .4s;
+}
+
+@keyframes shake{
+  25%{ transform:translateX(-6px); }
+  75%{ transform:translateX(6px); }
+}
+
+/* NAV */
+.nav-btn{
+  position:fixed;
+  top:50%;
+  transform:translateY(-50%);
+  font-family:'Fredoka One';
+  font-size:24px;
+  padding:15px 30px;
+  border-radius:50px;
+  border:4px solid white;
+  cursor:pointer;
+  background:#4cc9f0;
+}
+
+#nextBtn{ right:20px; display:none; }
+
+/* SMILEY */
+.smiley{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(.4);
+  font-size:200px;
+  opacity:0;
+  transition:.45s cubic-bezier(.17,.89,.32,1.49);
+  pointer-events:none;
+  z-index:2000;
+}
+.smiley.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+
+/* CONFETTI */
+.confetti{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1500;
+}
+.confetti-piece{
+  position:absolute;
+  width:10px;
+  height:14px;
+  top:-20px;
+  animation:fall 1.8s linear forwards;
+}
+@keyframes fall{
+  to{ transform:translateY(100vh) rotate(720deg); opacity:0; }
+}
+
+/* FINAL */
+.final-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(6px);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:3000;
+}
+.final-card{
+  background:#C2F4FF;
+  padding:50px;
+  border-radius:40px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div id="quiz"></div>
+
+  <button id="nextBtn" class="nav-btn">NEXT ▶</button>
+
+  <div id="smiley" class="smiley"></div>
+  <div id="confetti" class="confetti"></div>
+
+</div>
+
+<script>
+const quiz=[
+ {
+  text:"Give one example for a living thing.",
+  answer:"dog",
+  options:[
+    {id:"dog", img:"images/dog.png"},
+    {id:"rock", img:"images/rock.png"},
+    {id:"car", img:"images/car.png"}
+  ]
+ },
+ {
+  text:"Give one example for a non-living thing.",
+  answer:"chair",
+  options:[
+    {id:"tree", img:"images/tree.png"},
+    {id:"chair", img:"images/chair.png"},
+    {id:"bird", img:"images/bird.png"}
+  ]
+ },
+ {
+  text:"Give one example for a natural non-living thing.",
+  answer:"mountain",
+  options:[
+    {id:"mountain", img:"images/mountain.png"},
+    {id:"car", img:"images/car.png"},
+    {id:"dog", img:"images/dog.png"}
+  ]
+ },
+ {
+  text:"Give one example for a man-made thing.",
+  answer:"house",
+  options:[
+    {id:"house", img:"images/house.png"},
+    {id:"tree", img:"images/tree.png"},
+    {id:"cow", img:"images/cow.png"}
+  ]
+ }
+];
+
+const quizRoot=document.getElementById("quiz");
+const nextBtn=document.getElementById("nextBtn");
+const smiley=document.getElementById("smiley");
+const confettiBox=document.getElementById("confetti");
+
+let current=0, dragged=null, audioCtx=null;
+
+/* AUDIO */
+function ensureAudio(){
+  audioCtx ??= new (window.AudioContext||window.webkitAudioContext)();
+}
+
+function successSound(){
+  ensureAudio();
+  const t=audioCtx.currentTime;
+  [880,1100,1320].forEach((f,i)=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.frequency.value=f;
+    g.gain.setValueAtTime(.001,t+i*.12);
+    g.gain.linearRampToValueAtTime(.25,t+.05+i*.12);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.8+i*.12);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t+i*.12); o.stop(t+.9+i*.12);
+  });
+}
+
+function zzzSound(){
+  ensureAudio();
+  const t=audioCtx.currentTime;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.frequency.setValueAtTime(220,t);
+  o.frequency.exponentialRampToValueAtTime(140,t+.4);
+  g.gain.setValueAtTime(.001,t);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.5);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+.5);
+}
+
+/* CONFETTI */
+function confetti(count=120){
+  confettiBox.innerHTML="";
+  const colors=["#f778a1","#4cc9f0","#ffaa00","#2ed573","#ff4fd8"];
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div");
+    p.className="confetti-piece";
+    p.style.left=Math.random()*100+"%";
+    p.style.background=colors[Math.random()*colors.length|0];
+    p.style.animationDuration=(1.2+Math.random())+"s";
+    confettiBox.appendChild(p);
+  }
+  setTimeout(()=>confettiBox.innerHTML="",2200);
+}
+
+/* SMILEY */
+function showSmiley(e){
+  smiley.textContent=e;
+  smiley.classList.add("show");
+  setTimeout(()=>smiley.classList.remove("show"),1200);
+}
+
+/* RENDER */
+function render(){
+  const q=quiz[current];
+  quizRoot.innerHTML=`
+    <div class="q-number">Question ${current+1} of ${quiz.length}</div>
+    <div class="q-text">${q.text}</div>
+
+    <div class="drop-box" id="dropBox">Drop here</div>
+
+    <div class="options">
+      ${q.options.map(o=>`
+        <div class="option" draggable="true" data-id="${o.id}">
+          <img src="${o.img}">
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const dropBox=document.getElementById("dropBox");
+  const options=document.querySelectorAll(".option");
+
+  options.forEach(opt=>{
+    opt.addEventListener("dragstart",()=>{
+      dragged=opt;
+      opt.classList.add("dragging");
+    });
+    opt.addEventListener("dragend",()=>{
+      opt.classList.remove("dragging");
+    });
+  });
+
+  dropBox.addEventListener("dragover",e=>e.preventDefault());
+
+  dropBox.addEventListener("drop",()=>{
+    if(!dragged) return;
+
+    if(dragged.dataset.id===q.answer){
+      dropBox.innerHTML=dragged.innerHTML;
+      dropBox.classList.add("filled");
+      showSmiley("😄"); confetti(); successSound();
+      nextBtn.style.display="block";
+    }else{
+      dragged.classList.add("wrong");
+      showSmiley("😢"); zzzSound();
+      setTimeout(()=>dragged.classList.remove("wrong"),700);
+    }
+  });
+}
+
+nextBtn.onclick=()=>{
+  current++;
+  if(current<quiz.length){
+    nextBtn.style.display="none";
+    render();
+  }else{
+    showFinal();
+  }
+};
+
+function showFinal(){
+  confetti(260); successSound(); showSmiley("🥳");
+  const d=document.createElement("div");
+  d.className="final-overlay";
+  d.innerHTML=`
+    <div class="final-card">
+      <h1 style="font-family:'Fredoka One';font-size:52px;">🎉 WELL DONE! 🎉</h1>
+      <p style="font-size:26px;">You completed the quiz</p>
+      <button onclick="location.reload()" style="
+        margin-top:20px;
+        padding:14px 34px;
+        font-size:22px;
+        border-radius:30px;
+        border:none;
+        background:#4cc9f0;
+        color:white;
+        font-family:'Fredoka One';
+        cursor:pointer;">
+        PLAY AGAIN ↺
+      </button>
+    </div>`;
+  document.body.appendChild(d);
+}
+
+render();
+</script>
+</body>
+</html>

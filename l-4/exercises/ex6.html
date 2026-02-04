@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plant Parts – Wooden Shatter Quiz</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --pink: #ff758c; --blue: #4cc9f0;
+  --wood: #8b4513;
+}
+
+body{
+  font-family:"Livvic",sans-serif;
+  background:url(./uploads/bg4.png);
+  height:100vh;margin:0;display:flex;justify-content:center;align-items:center;overflow:hidden;
+}
+
+.app{width:100%;max-width:900px;padding:20px;text-align:center;position:relative;}
+
+.q-number{font-size:18px;color:#fff;margin-bottom:10px;font-weight:500;text-transform:uppercase;}
+.q-text{font-size:clamp(22pt,4vw,34pt);color:#fff;font-weight:600;margin-bottom:25px;}
+
+.hint-container{margin-bottom:30px;}
+.big-hint-img{width:180px;height:180px;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.1));}
+
+.options-container{display:flex;justify-content:center;gap:25px;margin-bottom:40px;}
+
+.board{
+ width:180px;height:80px;background:#a0522d;border:4px solid #5d2e17;border-radius:8px;
+ display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:800;
+ cursor:pointer;box-shadow:0 8px 0 #5d2e17;transition:.1s;
+}
+.board:hover:not(.correct){background:#b25e33;transform:translateY(-2px);}
+
+.splinter{position:absolute;background:#8b4513;width:20px;height:10px;pointer-events:none;animation:shatter-fly .6s ease-out forwards;}
+@keyframes shatter-fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--dr));opacity:0}}
+
+.shake{animation:shake-anim .2s}
+@keyframes shake-anim{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+.board.correct{background:#8ac926!important;border-color:#558b00!important;box-shadow:0 8px 0 #558b00!important;pointer-events:none;}
+
+.controls{display:flex;justify-content:space-between;max-width:400px;margin:0 auto;}
+.nav-btn{padding:25px 45px;border-radius:50px;border:none;font-size:20px;font-weight:700;cursor:pointer;color:white;}
+#prevBtn{background:var(--pink)}
+#nextBtn{background:var(--blue)}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+#smiley{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.4);font-size:180px;opacity:0;transition:.4s;pointer-events:none;z-index:2000;}
+#smiley.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;}
+.confetti-piece{position:absolute;width:10px;height:14px;top:-20px;animation:fall 2.5s linear forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+.final-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;justify-content:center;align-items:center;z-index:3000;}
+.final-card{background:white;padding:50px;border-radius:40px;text-align:center;}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+<div class="q-number" id="qNum"></div>
+<div class="q-text" id="qText"></div>
+
+<div class="hint-container">
+<img id="hintImg" class="big-hint-img">
+</div>
+
+<div id="optionsRow" class="options-container"></div>
+
+<div class="controls">
+<button id="prevBtn" class="nav-btn">◀ PREV</button>
+<button id="nextBtn" class="nav-btn" disabled>NEXT ▶</button>
+</div>
+</div>
+
+<div id="smiley"></div>
+<div id="confetti"></div>
+
+<script>
+const quiz=[
+ {q:"A cereal that we eat:",a:"Wheat",opts:["Wheat","Carrot","Rose"],img:"../uploads/wheat.png"},
+ {q:"A root that we eat:",a:"Radish",opts:["Cabbage","Radish","Apple"],img:"../uploads/radish.png"},
+ {q:"A leaf that we eat:",a:"Spinach",opts:["Spinach","Mango","Cauliflower"],img:"../uploads/spinach.png"},
+ {q:"A seed that we eat:",a:"Peas",opts:["Broccoli","Peas","Banana"],img:"../uploads/peas.png"},
+ {q:"A flower that we eat:",a:"Broccoli",opts:["Onion","Potato","Broccoli"],img:"../uploads/brocli.png"}
+];
+
+let i=0,solved=false,audioCtx=null;
+const answered=Array(quiz.length).fill(false);
+
+const qNum=document.getElementById("qNum"),
+qText=document.getElementById("qText"),
+hintImg=document.getElementById("hintImg"),
+optionsRow=document.getElementById("optionsRow"),
+nextBtn=document.getElementById("nextBtn"),
+prevBtn=document.getElementById("prevBtn"),
+smiley=document.getElementById("smiley"),
+confettiEl=document.getElementById("confetti");
+
+function getAudio(){
+ if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+ if(audioCtx.state==="suspended")audioCtx.resume();
+}
+
+function playWin(){
+ getAudio();
+ const t=audioCtx.currentTime,g=audioCtx.createGain();
+ g.gain.setValueAtTime(.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.8);
+ g.connect(audioCtx.destination);
+ [523,659,783,1046].forEach((f,x)=>{const o=audioCtx.createOscillator();o.frequency.value=f;o.connect(g);o.start(t+x*.08);o.stop(t+.8);});
+}
+
+function playZzz(){
+ getAudio();
+ const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+ o.type="sawtooth";o.frequency.setValueAtTime(110,t);o.frequency.linearRampToValueAtTime(40,t+.5);
+ g.gain.setValueAtTime(.12,t);g.gain.linearRampToValueAtTime(.001,t+.5);
+ o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(t+.5);
+}
+
+function shatterEffect(el){
+ const r=el.getBoundingClientRect();
+ for(let k=0;k<12;k++){
+  const s=document.createElement("div");s.className="splinter";
+  s.style.left=r.left+r.width/2+"px";s.style.top=r.top+r.height/2+"px";
+  s.style.setProperty("--dx",(Math.random()-.5)*400+"px");
+  s.style.setProperty("--dy",(Math.random()-.5)*400+"px");
+  s.style.setProperty("--dr",Math.random()*720+"deg");
+  document.body.appendChild(s);setTimeout(()=>s.remove(),600);
+ }
+ el.style.visibility="hidden";
+}
+
+function handleChoice(el,c){
+ if(solved||answered[i])return;
+
+ if(c===quiz[i].a){
+  solved=true;answered[i]=true;
+  el.classList.add("correct");
+  fx("win");
+  if(i===quiz.length-1)setTimeout(finish,1800);
+  else nextBtn.disabled=false;
+ }else{
+  el.classList.add("shake");
+  fx("sad");
+  setTimeout(()=>{shatterEffect(el);el.classList.remove("shake")},200);
+ }
+}
+
+function fx(t){
+ if(t==="win"){smiley.textContent="😊";smiley.classList.add("show");playWin();confetti();setTimeout(()=>smiley.classList.remove("show"),1500);}
+ else{smiley.textContent="😢";smiley.classList.add("show");playZzz();setTimeout(()=>smiley.classList.remove("show"),800);}
+}
+
+function confetti(){
+ for(let j=0;j<120;j++){
+  const p=document.createElement("div");p.className="confetti-piece";
+  p.style.left=Math.random()*100+"%";
+  p.style.background=["#ff595e","#ffca3a","#8ac926","#1982c4"][Math.random()*4|0];
+  confettiEl.appendChild(p);setTimeout(()=>p.remove(),2500);
+ }
+}
+
+function render(){
+ solved=answered[i];
+ qNum.textContent=`Question ${i+1} of ${quiz.length}`;
+ qText.textContent=quiz[i].q;
+ hintImg.src=quiz[i].img;
+ nextBtn.disabled=!answered[i];
+ prevBtn.disabled=i===0;
+ optionsRow.innerHTML="";
+ quiz[i].opts.forEach(o=>{
+  const b=document.createElement("div");b.className="board";b.textContent=o;
+  if(answered[i]&&o===quiz[i].a)b.classList.add("correct");
+  b.onclick=()=>handleChoice(b,o);
+  optionsRow.appendChild(b);
+ });
+}
+
+nextBtn.onclick=()=>{i++;render();}
+prevBtn.onclick=()=>{if(i>0){i--;render();}}
+
+function finish(){
+ playWin();
+ confetti();
+ const d=document.createElement("div");
+ d.className="final-overlay";
+ d.innerHTML=`<div class="final-card"><h1>🏆 WOODEN BOARD MASTER!</h1><p>You correctly identified all plant parts!</p><button class="nav-btn" style="background:var(--blue)" onclick="location.reload()">PLAY AGAIN</button></div>`;
+ document.body.appendChild(d);
+}
+
+render();
+</script>
+</body>
+</html>

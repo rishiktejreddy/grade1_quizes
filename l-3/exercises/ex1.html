@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Living & Non-Living Quiz</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+
+  <style>
+
+    body {
+      font-family: "Livvic", sans-serif;
+      background:"../uploads/bgimg.png";
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .app { width: 100%; max-width: 1100px; padding: 10px; }
+    .slide { display: none; }
+    .slide.active { display: block; }
+
+    .q-number {
+      text-align: center;
+      font-size: 18px;
+      color: #2F4F4F;
+      margin-bottom: 10px;
+    }
+
+    .question { text-align: center; }
+
+    .q-text {
+      font-size: clamp(20pt, 4vw, 34pt);
+      color: #2F4F4F;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+
+    .blank {
+      border-bottom: 3px dashed #2F4F4F;
+      padding: 0 15px;
+    }
+
+    .opts {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .opt-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .opt {
+      background: white;
+      width: 240px;
+      height: 160px;
+      border-radius: 25px;
+      border: 6px solid white;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #2F4F4F;
+      transition: transform 0.2s;
+    }
+
+    .opt:hover { transform: scale(1.05); }
+
+    .label { font-size: 22px; font-weight: 600; }
+
+    .opt.correct {
+      border-color: #2ed573;
+      background: #dff9fb;
+      pointer-events: none;
+    }
+
+    .opt.wrong {
+      border-color: #dc3545;
+      background: #ffe6e6;
+      animation: shake 0.4s;
+    }
+
+    .opt-container.faded { opacity: 0.35; pointer-events: none; }
+
+    @keyframes shake {
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #4cc9f0;
+      border: 4px solid white;
+      padding: 15px 30px;
+      border-radius: 50px;
+      font-size: 24px;
+      font-family: 'Fredoka One', cursive;
+      cursor: pointer;
+    }
+
+    #backBtn { left: 20px; background: #f778a1; }
+    #nextBtn { right: 20px; display: none; }
+
+    .smiley-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      font-size: 180px;
+      opacity: 0;
+      transition: all 0.5s ease;
+      pointer-events: none;
+    }
+
+    .smiley-overlay.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 12px;
+      top: -20px;
+      animation: fall 1.6s linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <div id="slides"></div>
+
+  <button id="backBtn" class="nav-btn">◀ PREV</button>
+  <button id="nextBtn" class="nav-btn">NEXT ▶</button>
+
+  <div class="confetti" id="confetti"></div>
+  <div id="smiley" class="smiley-overlay"></div>
+</div>
+
+<script>
+const quiz = [
+  { text:"Living things need water to _____.", options:["drink","move","fly"], correct:0 },
+  { text:"Non-living things _____.", options:["breathe","don't breathe","eat"], correct:1 },
+  { text:"A book is a _____ thing.", options:["man-made","natural","living"], correct:0 },
+  { text:"Living things _____.", options:["don't die","don't grow","die"], correct:2 },
+  { text:"Human beings are _____ things.", options:["non-living","living","man-made"], correct:1 }
+];
+
+const slides = document.getElementById("slides");
+const nextBtn = document.getElementById("nextBtn");
+const backBtn = document.getElementById("backBtn");
+const smiley = document.getElementById("smiley");
+const confettiBox = document.getElementById("confetti");
+
+let current = 0;
+
+quiz.forEach((q,i)=>{
+  const slide = document.createElement("div");
+  slide.className = "slide" + (i===0?" active":"");
+  slide.innerHTML = `
+    <div class="question" data-answered="false">
+      <div class="q-number">Question ${i+1} of ${quiz.length}</div>
+      <div class="q-text">${q.text.replace("_____","<span class='blank'>_____</span>")}</div>
+      <div class="opts">
+        ${q.options.map((o,idx)=>`
+          <div class="opt-container">
+            <div class="opt" data-i="${idx}">${o}</div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+  slides.appendChild(slide);
+
+  slide.querySelectorAll(".opt").forEach(opt=>{
+    opt.onclick = ()=>{
+      if(slide.querySelector(".question").dataset.answered==="true") return;
+      const idx = +opt.dataset.i;
+      if(idx===q.correct){
+        opt.classList.add("correct");
+        showSmiley("😄"); confetti(); nextBtn.style.display="block";
+        slide.querySelector(".question").dataset.answered="true";
+        slide.querySelectorAll(".opt-container").forEach(c=>{
+          if(!c.contains(opt)) c.classList.add("faded");
+        });
+      } else {
+        opt.classList.add("wrong");
+        showSmiley("😢");
+        zzsound();
+        setTimeout(()=>opt.classList.remove("wrong"),700);
+      }
+    };
+  });
+});
+
+function showSlide(i){
+  document.querySelectorAll(".slide").forEach((s,idx)=>s.classList.toggle("active",idx===i));
+  current=i;
+  backBtn.style.display = current===0?"none":"block";
+  nextBtn.style.display = document.querySelector(".slide.active .question").dataset.answered==="true"?"block":"none";
+}
+
+nextBtn.onclick=()=> current<quiz.length-1?showSlide(current+1):alert("🎉 Quiz Finished!");
+backBtn.onclick=()=> showSlide(current-1);
+
+function showSmiley(e){
+  smiley.textContent=e;
+  smiley.classList.add("show");
+  setTimeout(()=>smiley.classList.remove("show"),1000);
+}
+
+function confetti(){
+  confettiBox.innerHTML="";
+  ["#f778a1","#4cc9f0","#ffaa00","#2ed573"].forEach((c,i)=>{
+    for(let j=0;j<15;j++){
+      const d=document.createElement("div");
+      d.className="confetti-piece";
+      d.style.left=Math.random()*100+"%";
+      d.style.background=c;
+      confettiBox.appendChild(d);
+    }
+  });
+  setTimeout(()=>confettiBox.innerHTML="",2000);
+}
+
+function zzsound(){
+ensureAudio();
+  const t=audioCtx.currentTime;
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+
+  o.type="sine";
+  o.frequency.setValueAtTime(220,t);
+  o.frequency.exponentialRampToValueAtTime(140,t+.4);
+
+  g.gain.setValueAtTime(.001,t);
+  g.gain.linearRampToValueAtTime(.18,t+.05);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.5);
+
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+.5);
+}
+
+showSlide(0);
+</script>
+</body>
+</html>

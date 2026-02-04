@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Tick the Correct Answer</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+  font-family:"Livvic",sans-serif;
+  background:url(./uploads/bg4.png);
+  height:100vh;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.app{ width:100%; max-width:1100px; padding:24px; }
+
+.header{text-align:center;margin-bottom:20px;}
+.header h1{font-weight:500;color:#ff7a00;font-size:30px;margin:0;}
+
+.q-number{text-align:center;font-size:18px;color:#eff2f2;font-weight:500;}
+
+.q-text{
+  text-align:center;
+  font-size:clamp(22pt,4vw,34pt);
+  color:#f0f6f6;
+  margin:20px 0 30px;
+  font-weight:500;
+}
+
+.options{
+  display:flex;
+  justify-content:center;
+  gap:60px;
+}
+
+.option{text-align:center;}
+
+.option-img{
+  width:180px;
+  height:180px;
+  background:white;
+  border-radius:30px;
+  border:6px solid white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 10px 22px rgba(0,0,0,.2);
+}
+
+.option-img img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  border-radius:24px;
+}
+
+.option.correct .option-img{border-color:#2ed573;background:#dff9fb;}
+.option.wrong .option-img{border-color:#dc3545;background:#ffe6e6;}
+
+.option-label{
+  margin-top:10px;
+  font-size:26px;
+  font-weight:600;
+  color:#2F4F4F;
+}
+
+#nextBtn,#prevBtn{
+  position:fixed;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:24px;
+  font-weight:700;
+  padding:15px 30px;
+  border-radius:50px;
+  border:4px solid white;
+  cursor:pointer;
+  color:white;
+  display:none;
+}
+
+#nextBtn{right:20px;background:#4cc9f0;}
+#prevBtn{left:20px;background:#ff758c;}
+
+.smiley{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(.4);
+  font-size:200px;
+  opacity:0;
+  transition:.45s cubic-bezier(.17,.89,.32,1.49);
+}
+.smiley.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+.confetti{position:fixed;inset:0;pointer-events:none;}
+.confetti-piece{
+  position:absolute;width:10px;height:14px;top:-20px;
+  animation:fall 1.8s linear forwards;
+}
+@keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+
+/* FINAL CARD */
+.final-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+
+.final-card{
+  background:#C2F4FF;
+  padding:50px;
+  border-radius:40px;
+  text-align:center;
+}
+
+.final-card h1{margin:0 0 15px;font-size:36px;}
+
+.final-card button{
+  margin-top:20px;
+  padding:12px 30px;
+  border-radius:40px;
+  border:none;
+  background:#4cc9f0;
+  font-size:22px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">
+<h1>Tick (✓) the Correct Answer</h1>
+</div>
+
+<div id="quiz"></div>
+
+<button id="prevBtn">◀ PREV</button>
+<button id="nextBtn">NEXT ▶</button>
+
+<div id="smiley" class="smiley"></div>
+<div id="confetti" class="confetti"></div>
+
+</div>
+
+<script>
+
+const quiz=[
+{
+ text:"Radish is an example of a ____ that we eat.",
+ options:[
+  {txt:"Stem",img:"../uploads/stem.png"},
+  {txt:"Root",img:"../uploads/radish.png"},
+  {txt:"Leaf",img:"../uploads/leaf.png"}
+ ],
+ answer:1
+},
+{
+ text:"Broccoli is an example of a ____ that we eat.",
+ options:[
+  {txt:"Stem",img:"../uploads/stem.png"},
+  {txt:"Root",img:"../uploads/roots.png"},
+  {txt:"Flower",img:"../uploads/br.png"}
+ ],
+ answer:2
+},
+{
+ text:"Plants need ____ to grow.",
+ options:[
+  {txt:"Water",img:"../uploads/water.png"},
+  {txt:"Butter",img:"../uploads/butter.png"},
+  {txt:"Eggs",img:"../uploads/eggs.png"}
+ ],
+ answer:0
+},
+{
+ text:"Plants that are tall and woody are called ____.",
+ options:[
+  {txt:"Shrubs",img:"../uploads/shrubs.png"},
+  {txt:"Trees",img:"../uploads/trees.png"},
+  {txt:"Herbs",img:"../uploads/herbs.png"}
+ ],
+ answer:1
+},
+{
+ text:"An example of a leaf that we eat is ____.",
+ options:[
+  {txt:"Mango",img:"../uploads/mango.png"},
+  {txt:"Spinach",img:"../uploads/spinach.png"},
+  {txt:"Apple",img:"../uploads/apple.png"}
+ ],
+ answer:1
+}
+];
+
+const quizBox=document.getElementById("quiz");
+const nextBtn=document.getElementById("nextBtn");
+const prevBtn=document.getElementById("prevBtn");
+const smiley=document.getElementById("smiley");
+const confettiBox=document.getElementById("confetti");
+
+let current=0;
+let locked=false;
+const userAnswers = Array(quiz.length).fill(null);
+
+// GENERATE BROWSER SOUNDS (NO MP3 FILES NEEDED)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  if (type === 'correct') {
+    // High-pitched "Ding"
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+  } else {
+    // Low "Buzz/ZZ" sound
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(110, audioCtx.currentTime); // A2
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  }
+}
+
+function confetti(){
+ confettiBox.innerHTML="";
+ const colors=["#f778a1","#4cc9f0","#ffaa00","#2ed573"];
+ for(let i=0;i<120;i++){
+  const p=document.createElement("div");
+  p.className="confetti-piece";
+  p.style.left=Math.random()*100+"%";
+  p.style.background=colors[Math.random()*colors.length|0];
+  confettiBox.appendChild(p);
+ }
+ setTimeout(()=>confettiBox.innerHTML="",2000);
+}
+
+function showSmiley(e){
+ smiley.textContent=e;
+ smiley.classList.add("show");
+ setTimeout(()=>smiley.classList.remove("show"),1200);
+}
+
+function finishQuiz(){
+ confetti();
+ playSound('correct'); // Play success sound for completion
+
+ const f=document.createElement("div");
+ f.className="final-overlay";
+ f.innerHTML=`
+   <div class="final-card">
+     <h1>🏆 QUIZ COMPLETED!</h1>
+     <p>Great Job!</p>
+     <button onclick="location.reload()">PLAY AGAIN</button>
+   </div>
+ `;
+ document.body.appendChild(f);
+}
+
+function render(){
+ locked=false;
+ const q=quiz[current];
+
+ quizBox.innerHTML=`
+ <div class="q-number">Question ${current+1} of ${quiz.length}</div>
+ <div class="q-text" id="qText">${q.text}</div>
+
+ <div class="options">
+ ${q.options.map((o,i)=>`
+  <div class="option" data-i="${i}">
+   <div class="option-img"><img src="${o.img}"></div>
+   <div class="option-label">${o.txt}</div>
+  </div>`).join("")}
+ </div>`;
+
+ nextBtn.style.display="none";
+ prevBtn.style.display=current>0?"block":"none";
+
+ document.querySelectorAll(".option").forEach(opt=>{
+  opt.onclick=()=>{
+   if(locked) return;
+
+   const idx=+opt.dataset.i;
+
+   if(idx===q.answer){
+    locked=true;
+    userAnswers[current]=idx;
+
+    opt.classList.add("correct");
+    playSound('correct'); // SUCCESS SOUND
+
+    document.getElementById("qText").innerHTML=
+      q.text.replace("____",`<b style="color:#2ed573">${q.options[idx].txt}</b>`);
+
+    showSmiley("😄");
+    confetti();
+    if(current === quiz.length - 1){
+      setTimeout(finishQuiz, 1000);
+    }else{
+      nextBtn.style.display="block";
+    }
+
+   }else{
+    opt.classList.add("wrong");
+    playSound('wrong'); // ZZ SOUND
+    showSmiley("😢");
+    setTimeout(()=>opt.classList.remove("wrong"),700);
+   }
+  };
+ });
+
+ if(userAnswers[current]!==null){
+  locked=true;
+  const idx=userAnswers[current];
+  const opt=document.querySelector(`.option[data-i="${idx}"]`);
+  opt.classList.add("correct");
+
+  document.getElementById("qText").innerHTML=
+    q.text.replace("____",`<b style="color:#2ed573">${q.options[idx].txt}</b>`);
+
+  nextBtn.style.display="block";
+ }
+}
+
+nextBtn.onclick=()=>{
+ current++;
+ if(current<quiz.length){
+   render();
+ }else{
+   finishQuiz();
+ }
+};
+
+prevBtn.onclick=()=>{
+ if(current>0){current--;render();}
+};
+
+render();
+
+</script>
+</body>
+</html>

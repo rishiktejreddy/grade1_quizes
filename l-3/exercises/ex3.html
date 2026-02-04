@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>True or False Quiz</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg1:#fde2e4;
+  --bg2:#e2f0fb;
+  --bg3:#e8f8e8;
+}
+
+body{
+  font-family:"Livvic",sans-serif;
+  background:
+    "../uploads/bg2.png";
+  height:100vh;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+.app{ width:100%; max-width:1100px; padding:12px; }
+
+.slide{ display:none; }
+.slide.active{ display:block; }
+
+.q-number{
+  text-align:center;
+  font-size:18px;
+  color:#2F4F4F;
+  margin-bottom:10px;
+}
+
+/* QUESTION + STICKER */
+.q-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:16px;
+  margin:20px 0 35px;
+}
+
+.q-text{
+  font-size:clamp(20pt,4vw,34pt);
+  color:#2F4F4F;
+  text-align:center;
+}
+
+/* STICKER HINT */
+.hint-sticker{
+  width:70px;
+  height:70px;
+  object-fit:contain;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.2));
+}
+
+/* T F BOX */
+.tf-box{
+  display:flex;
+  justify-content:center;
+  gap:60px;
+}
+
+.tf-btn{
+  width:160px;
+  height:160px;
+  border-radius:40px;
+  border:6px solid white;
+  font-family:'Fredoka One',cursive;
+  font-size:70px;
+  cursor:pointer;
+  box-shadow:0 12px 25px rgba(0,0,0,0.15);
+  transition:transform .2s;
+}
+
+.tf-btn:hover{ transform:scale(1.1); }
+
+.tf-true{ background:#e8f8e8; color:#2ed573; }
+.tf-false{ background:#fde2e4; color:#dc3545; }
+
+.tf-btn.correct{
+  background:#dff9fb;
+  border-color:#2ed573;
+}
+
+.tf-btn.wrong{
+  background:#ffe6e6;
+  border-color:#dc3545;
+}
+
+/* NAV */
+.nav-btn{
+  position:fixed;
+  top:50%;
+  transform:translateY(-50%);
+  font-family:'Fredoka One',cursive;
+  font-size:24px;
+  padding:15px 30px;
+  border-radius:50px;
+  border:4px solid white;
+  cursor:pointer;
+  background:#4cc9f0;
+}
+
+#backBtn{ left:20px; background:#f778a1; }
+#nextBtn{ right:20px; display:none; }
+
+/* SMILEY */
+.smiley{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(.4);
+  font-size:200px;
+  opacity:0;
+  transition:.45s cubic-bezier(.17,.89,.32,1.49);
+  pointer-events:none;
+  z-index:2000;
+}
+
+.smiley.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+
+/* CONFETTI */
+.confetti{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1500;
+}
+
+.confetti-piece{
+  position:absolute;
+  width:10px;
+  height:14px;
+  top:-20px;
+  animation:fall 1.8s linear forwards;
+}
+
+@keyframes fall{
+  to{
+    transform:translateY(100vh) rotate(720deg);
+    opacity:0;
+  }
+}
+
+/* FINAL CARD */
+.final-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(6px);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:3000;
+}
+
+.final-card{
+  background:#C2F4FF;
+  padding:50px;
+  border-radius:40px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div id="slides"></div>
+
+  <button id="backBtn" class="nav-btn">◀ PREV</button>
+  <button id="nextBtn" class="nav-btn">NEXT ▶</button>
+
+  <div id="smiley" class="smiley"></div>
+  <div id="confetti" class="confetti"></div>
+</div>
+
+<script>
+const quiz=[
+ { text:"Living things need food and water to live.",
+   answer:"T",
+   img:"images/food-water.png"
+ },
+ { text:"Living things do not move on their own.",
+   answer:"F",
+   img:"images/move.png"
+ },
+ { text:"Living things need air to breathe.",
+   answer:"T",
+   img:"images/breathe.png"
+ },
+ { text:"Non-living things grow.",
+   answer:"F",
+   img:"images/nonliving.png"
+ },
+ { text:"A rock is a man-made thing.",
+   answer:"F",
+   img:"images/rock.png"
+ }
+];
+
+const slidesRoot=document.getElementById("slides");
+const nextBtn=document.getElementById("nextBtn");
+const backBtn=document.getElementById("backBtn");
+const smiley=document.getElementById("smiley");
+const confettiBox=document.getElementById("confetti");
+
+let current=0, audioCtx=null;
+
+/* AUDIO */
+function ensureAudio(){
+  audioCtx ??= new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended") audioCtx.resume();
+}
+
+function playSuccess(){
+  ensureAudio();
+  const t=audioCtx.currentTime;
+  [880,1100,1320].forEach((f,i)=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type="sine"; o.frequency.value=f;
+    g.gain.setValueAtTime(.001,t+i*.12);
+    g.gain.linearRampToValueAtTime(.25,t+.05+i*.12);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.8+i*.12);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t+i*.12); o.stop(t+.9+i*.12);
+  });
+}
+
+function playZzz(){
+  ensureAudio();
+  const t=audioCtx.currentTime;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type="sine";
+  o.frequency.setValueAtTime(220,t);
+  o.frequency.exponentialRampToValueAtTime(140,t+.4);
+  g.gain.setValueAtTime(.001,t);
+  g.gain.linearRampToValueAtTime(.18,t+.05);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.5);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+.5);
+}
+
+/* CONFETTI */
+function launchConfetti(count=120){
+  confettiBox.innerHTML="";
+  const colors=["#f778a1","#4cc9f0","#ffaa00","#2ed573","#ff4fd8"];
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div");
+    p.className="confetti-piece";
+    p.style.left=Math.random()*100+"%";
+    p.style.background=colors[Math.random()*colors.length|0];
+    p.style.animationDuration=(1.2+Math.random())+"s";
+    confettiBox.appendChild(p);
+  }
+  setTimeout(()=>confettiBox.innerHTML="",2200);
+}
+
+function showSmiley(e){
+  smiley.textContent=e;
+  smiley.classList.add("show");
+  setTimeout(()=>smiley.classList.remove("show"),1200);
+}
+
+/* BUILD SLIDES */
+quiz.forEach((q,i)=>{
+  const s=document.createElement("div");
+  s.className="slide"+(i===0?" active":"");
+  s.innerHTML=`
+    <div class="question" data-answered="false">
+      <div class="q-number">Question ${i+1} of ${quiz.length}</div>
+
+      <div class="q-wrap">
+        <div class="q-text">${q.text}</div>
+        <img src="${q.img}" class="hint-sticker" alt="hint">
+      </div>
+
+      <div class="tf-box">
+        <button class="tf-btn tf-true" data-val="T">T</button>
+        <button class="tf-btn tf-false" data-val="F">F</button>
+      </div>
+    </div>`;
+  slidesRoot.appendChild(s);
+
+  s.querySelectorAll(".tf-btn").forEach(btn=>{
+    btn.onclick=()=>{
+      const qEl=s.querySelector(".question");
+      if(qEl.dataset.answered==="true") return;
+
+      if(btn.dataset.val===q.answer){
+        btn.classList.add("correct");
+        qEl.dataset.answered="true";
+        showSmiley("😄"); launchConfetti(); playSuccess();
+        nextBtn.style.display="block";
+      }else{
+        btn.classList.add("wrong");
+        showSmiley("😢"); playZzz();
+        setTimeout(()=>btn.classList.remove("wrong"),700);
+      }
+    };
+  });
+});
+
+/* NAV */
+function showSlide(i){
+  document.querySelectorAll(".slide").forEach((s,idx)=>s.classList.toggle("active",idx===i));
+  current=i;
+  backBtn.style.display=current===0?"none":"block";
+  nextBtn.style.display=document.querySelector(".slide.active .question").dataset.answered==="true"?"block":"none";
+}
+
+nextBtn.onclick=()=>{
+  if(current<quiz.length-1) showSlide(current+1);
+  else showFinal();
+};
+backBtn.onclick=()=>showSlide(current-1);
+
+/* FINAL */
+function showFinal(){
+  launchConfetti(260); playSuccess(); showSmiley("🥳");
+  const d=document.createElement("div");
+  d.className="final-overlay";
+  d.innerHTML=`
+    <div class="final-card">
+      <h1 style="font-family:'Fredoka One';font-size:50px;">🎉 WELL DONE! 🎉</h1>
+      <p style="font-size:24px;color:#2F4F4F;">You completed the quiz</p>
+      <button class="nav-btn" style="position:static;margin-top:20px"
+        onclick="location.reload()">PLAY AGAIN ↺</button>
+    </div>`;
+  document.body.appendChild(d);
+}
+
+showSlide(0);
+</script>
+</body>
+</html>

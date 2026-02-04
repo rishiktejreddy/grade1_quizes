@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>II Chapter Quiz</title>
+  <title>III Chapter Quiz</title>
 
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📘</text></svg>">
@@ -13,13 +13,7 @@
     rel="stylesheet">
 
   <style>
-    :root {
-      --bg1:#fde2e4;
-      --bg2:#e2f0fb;
-      --bg3:#e8f8e8;
-      --sidebar-bg: #b4f0d6;
-      --text-color: #2c3e50;
-    }
+
 
     body {
       margin: 0;
@@ -28,9 +22,7 @@
       height: 100vh;
       overflow: hidden;
       background:
-        radial-gradient(circle at top left, var(--bg1), transparent 55%),
-        radial-gradient(circle at bottom right, var(--bg2), transparent 55%),
-        radial-gradient(circle at center, var(--bg3), #ffffff 60%);
+        url(./uploads/bgimg.png) 
     }
 
     .sidebar {
@@ -165,7 +157,6 @@
         padding: 10px;
         flex-direction: row;
         overflow-x: auto;
-        border-bottom: 5px solid #b2ebf2;
         box-sizing: border-box;
       }
 
@@ -198,7 +189,7 @@
 <body>
 
   <div class="sidebar">
-    <h2 class="l-name">Chapter 2 Quiz</h2>
+    <h2 class="l-name">Chapter 3 Quiz</h2>
 
     <div class="menu-container">
 
@@ -218,17 +209,12 @@
       </button>
 
       <!-- IV -->
-      <button class="menu-btn btn-4" data-file="exercises/ex4.html">
-        <span class="sticker-icon">💡</span> One Word Answers
-      </button>
-
-      <!-- V -->
-      <button class="menu-btn btn-5" data-file="exercises/ex5.html">
+      <button class="menu-btn btn-5" data-file="exercises/ex4.html">
         <span class="sticker-icon">🔗</span> Match the Following
       </button>
 
-      <!-- VI -->
-      <button class="menu-btn btn-6" data-file="exercises/ex6.html">
+      <!-- V -->
+      <button class="menu-btn btn-6" data-file="exercises/ex5.html">
         <span class="sticker-icon">🌟</span> Give One Example
       </button>
 
